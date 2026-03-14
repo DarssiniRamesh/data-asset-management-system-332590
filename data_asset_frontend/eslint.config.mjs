@@ -3,6 +3,8 @@ import pluginJsxA11y from "eslint-plugin-jsx-a11y";
 import pluginPrettier from "eslint-plugin-prettier";
 import pluginReact from "eslint-plugin-react";
 import pluginReactHooks from "eslint-plugin-react-hooks";
+import tseslint from "@typescript-eslint/eslint-plugin";
+import tsParser from "@typescript-eslint/parser";
 
 /**
  * ESLint Flat Config (ESLint v9+).
@@ -17,7 +19,7 @@ export default [
     ignores: ["build/**", "coverage/**", "node_modules/**"],
   },
 
-  // Base file targeting
+  // Base JS/JSX file targeting
   {
     files: ["**/*.{js,mjs,cjs,jsx}"],
     languageOptions: {
@@ -32,6 +34,33 @@ export default [
         test: true,
         expect: true,
       },
+    },
+  },
+
+  // TypeScript/TSX file targeting
+  {
+    files: ["**/*.{ts,tsx}"],
+    languageOptions: {
+      parser: tsParser,
+      parserOptions: {
+        ecmaVersion: "latest",
+        sourceType: "module",
+        ecmaFeatures: { jsx: true },
+      },
+      globals: {
+        document: true,
+        window: true,
+        test: true,
+        expect: true,
+      },
+    },
+    plugins: {
+      "@typescript-eslint": tseslint,
+    },
+    rules: {
+      // Defer to TypeScript for unused vars in TS files to avoid false positives.
+      "no-unused-vars": "off",
+      "@typescript-eslint/no-unused-vars": ["error", { argsIgnorePattern: "^_" }],
     },
   },
 
@@ -70,11 +99,6 @@ export default [
        * Keep this conservative to avoid overwhelming legacy markup.
        */
       "jsx-a11y/anchor-is-valid": "warn",
-
-      /**
-       * Code hygiene
-       */
-      "no-unused-vars": ["error", { varsIgnorePattern: "React|App" }],
 
       /**
        * Formatting enforcement via Prettier.
