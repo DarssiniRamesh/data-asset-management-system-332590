@@ -11,15 +11,22 @@ import { useToasts } from "../state/ToastContext";
 import { Breadcrumbs } from "../layout/Breadcrumbs";
 import { ApiError } from "../api/client";
 import { useAuth } from "../state/AuthContext";
+import { getUiCapabilities } from "../lib/rbac";
 
 // PUBLIC_INTERFACE
 export function AssetsListPage() {
   /** Contract:
    * - Lists assets via GET /api/assets
    * - Client-side search/filter/pagination (backend may later provide query params)
+   * - RBAC UX:
+   *    - Viewer: view only (no create/copy/delete)
+   *    - Editor: create/copy enabled, delete disabled
+   *    - Admin: create/copy/delete enabled
    */
   const { pushToast } = useToasts();
   const { user } = useAuth();
+  const caps = getUiCapabilities(user?.role);
+
   const [rows, setRows] = useState<AssetDto[]>([]);
   const [loading, setLoading] = useState(false);
   const [query, setQuery] = useState("");
@@ -51,15 +58,7 @@ export function AssetsListPage() {
     const q = query.trim().toLowerCase();
     if (!q) return rows;
     return rows.filter((r) =>
-      [
-        r.assetId,
-        r.assetName,
-        r.siteId,
-        r.assetGroup,
-        r.processGroup,
-        r.globalUniqueAssetId,
-        r.permitEuId,
-      ]
+      [r.assetId, r.assetName, r.siteId, r.assetGroup, r.processGroup, r.globalUniqueAssetId, r.permitEuId]
         .filter(Boolean)
         .some((v) => String(v).toLowerCase().includes(q)),
     );
@@ -85,12 +84,26 @@ export function AssetsListPage() {
           <Link to={`/app/assets/${r.assetId}`} className="btn-ghost" title="View">
             <Icon icon={FaEye} className="h-4 w-4" />
           </Link>
-          <Link to={`/app/assets/${r.assetId}/copy`} className="btn-ghost" title="Copy">
-            <Icon icon={FaCopy} className="h-4 w-4" />
-          </Link>
-          <button className="btn-ghost" title="Delete" onClick={() => setDeleteId(r.assetId)}>
-            <Icon icon={FaTrash} className="h-4 w-4" />
-          </button>
+
+          {caps.canCopy ? (
+            <Link to={`/app/assets/${r.assetId}/copy`} className="btn-ghost" title="Copy">
+              <Icon icon={FaCopy} className="h-4 w-4" />
+            </Link>
+          ) : (
+            <button className="btn-ghost opacity-60" title="Copy requires Editor or Admin role" disabled>
+              <Icon icon={FaCopy} className="h-4 w-4" />
+            </button>
+          )}
+
+          {caps.canDelete ? (
+            <button className="btn-ghost" title="Delete" onClick={() => setDeleteId(r.assetId)}>
+              <Icon icon={FaTrash} className="h-4 w-4" />
+            </button>
+          ) : (
+            <button className="btn-ghost opacity-60" title="Delete requires Admin role" disabled>
+              <Icon icon={FaTrash} className="h-4 w-4" />
+            </button>
+          )}
         </div>
       ),
       widthClassName: "w-[160px]",
@@ -100,6 +113,13 @@ export function AssetsListPage() {
   async function confirmDelete(): Promise<void> {
     const id = deleteId;
     setDeleteId("");
+
+    // Defensive guard (UI should already hide/disable, but keep one canonical check here too).
+    if (!caps.canDelete) {
+      pushToast({ type: "error", title: "Insufficient permissions", message: "Delete requires Admin role." });
+      return;
+    }
+
     try {
       await deleteAsset(id, {
         modifiedBy: user?.username || "frontend",
@@ -129,9 +149,15 @@ export function AssetsListPage() {
           <p className="muted mt-1">Search, filter, and manage your asset catalog.</p>
         </div>
 
-        <Link to="/app/assets/create" className="btn-primary">
-          <Icon icon={FaPlus} className="h-4 w-4" /> Create Asset
-        </Link>
+        {caps.canCreate ? (
+          <Link to="/app/assets/create" className="btn-primary">
+            <Icon icon={FaPlus} className="h-4 w-4" /> Create Asset
+          </Link>
+        ) : (
+          <button className="btn-primary opacity-60" disabled title="Create requires Editor or Admin role">
+            <Icon icon={FaPlus} className="h-4 w-4" /> Create Asset
+          </button>
+        )}
       </div>
 
       <div className="grid grid-cols-1 gap-3 lg:grid-cols-3">
@@ -187,7 +213,7 @@ export function AssetsListPage() {
             <button className="btn-secondary" onClick={() => setDeleteId("")}>
               Cancel
             </button>
-            <button className="btn-primary" onClick={confirmDelete}>
+            <button className="btn-primary" onClick={confirmDelete} disabled={!caps.canDelete}>
               Confirm
             </button>
           </>

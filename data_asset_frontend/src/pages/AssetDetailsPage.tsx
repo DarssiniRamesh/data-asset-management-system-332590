@@ -9,6 +9,8 @@ import { Icon } from "../components/Icon";
 import { LoaderSpinner } from "../components/LoaderSpinner";
 import { Tabs, type TabSpec } from "../components/Tabs";
 import { useToasts } from "../state/ToastContext";
+import { useAuth } from "../state/AuthContext";
+import { getUiCapabilities } from "../lib/rbac";
 
 type TabId = "details" | "siteassets" | "inputef" | "throughput";
 
@@ -17,9 +19,14 @@ export function AssetDetailsPage() {
   /** Contract:
    * - Loads asset via GET /api/assets/{assetId}
    * - Tabs load data from backend modules (where endpoints exist)
+   * - RBAC UX:
+   *    - Viewer: read-only; hide Edit CTA
+   *    - Editor/Admin: can edit asset
    */
   const { assetId } = useParams<{ assetId: string }>();
   const { pushToast } = useToasts();
+  const { user } = useAuth();
+  const caps = getUiCapabilities(user?.role);
 
   const [asset, setAsset] = useState<AssetDto | null>(null);
   const [loadingAsset, setLoadingAsset] = useState(true);
@@ -112,9 +119,16 @@ export function AssetDetailsPage() {
                 {asset.siteId} • {asset.assetGroup} • {asset.processGroup}
               </p>
             </div>
-            <Link to={`/app/assets/${asset.assetId}/edit`} className="btn-primary">
-              <Icon icon={FaEdit} className="h-4 w-4" /> Edit
-            </Link>
+
+            {caps.canEdit ? (
+              <Link to={`/app/assets/${asset.assetId}/edit`} className="btn-primary" title="Edit asset">
+                <Icon icon={FaEdit} className="h-4 w-4" /> Edit
+              </Link>
+            ) : (
+              <button className="btn-primary opacity-60" disabled title="Edit requires Editor or Admin role">
+                <Icon icon={FaEdit} className="h-4 w-4" /> Edit
+              </button>
+            )}
           </div>
 
           <Tabs tabs={tabs} activeId={tab} onChange={(id) => setTab(id as TabId)} />
@@ -172,15 +186,17 @@ export function AssetDetailsPage() {
                 <div className="flex flex-wrap items-end justify-between gap-3">
                   <div>
                     <div className="text-sm font-semibold">Input EF Mapping</div>
-                    <div className="muted mt-1">
-                      Loads mappings via legacy endpoint using assetId + inputParameterId.
-                    </div>
+                    <div className="muted mt-1">Loads mappings via legacy endpoint using assetId + inputParameterId.</div>
                   </div>
 
                   <div className="flex items-center gap-2">
                     <label className="block">
                       <div className="label">Input Parameter ID</div>
-                      <input className="input mt-1 w-40" value={inputParameterId} onChange={(e) => setInputParameterId(e.target.value)} />
+                      <input
+                        className="input mt-1 w-40"
+                        value={inputParameterId}
+                        onChange={(e) => setInputParameterId(e.target.value)}
+                      />
                     </label>
                     <button className="btn-primary mt-6" onClick={loadMappings} disabled={loadingMappings}>
                       {loadingMappings ? "Loading..." : "Load"}
