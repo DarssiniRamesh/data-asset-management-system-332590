@@ -1,28 +1,58 @@
 import { useEffect, useMemo, useState } from "react";
-import { listAssetStatusLogs } from "../../../api/endpoints";
-import type { AssetStatusLogDto } from "../../../api/types";
+import {
+  createAssetStatusLog,
+  listAssetStatusLogs,
+  queryStatusCodeMasters,
+  updateAssetStatusLog,
+} from "../../../api/endpoints";
+import type { AssetStatusLogDto, StatusCodeMasterDto } from "../../../api/types";
 import { DataTable, type Column } from "../../../components/DataTable";
-import { roleLabel } from "../../../lib/rbac";
+import { FormInput } from "../../../components/FormInput";
+import { Modal } from "../../../components/Modal";
+import { useAuth } from "../../../state/AuthContext";
+import { useToasts } from "../../../state/ToastContext";
 import type { AssetDetailsTabProps } from "../AssetDetailsTab";
 import { TabStatePanel } from "../TabStatePanel";
+import { CrudActionBar } from "../crud/CrudActionBar";
+import { extractErrors, requireInt, validateRequiredStrings } from "../crud/crudFormUtils";
 
 type Row = AssetStatusLogDto;
 
 // PUBLIC_INTERFACE
 export function StatusLogTab({ asset, caps }: AssetDetailsTabProps) {
-  /** Contract:
-   * Purpose:
-   *  - BRD-required Status Log module for an asset.
+  /** BRD: Status Log CRUD
    * Backend:
    *  - GET /api/assets/{assetId}/status-logs
-   * RBAC:
-   *  - Viewer: read-only (no create/update UI in this step).
-   * Notes:
-   *  - This step focuses on wiring + consistent state handling; create/edit forms are added later.
+   *  - POST /api/assets/{assetId}/status-logs
+   *  - PUT /api/assets/{assetId}/status-logs/{assetStatusLogId}
+   * Masters:
+   *  - GET /api/masters/status-codes
    */
+  const { user } = useAuth();
+  const { pushToast } = useToasts();
+
   const [rows, setRows] = useState<Row[]>([]);
+  const [statusCodes, setStatusCodes] = useState<StatusCodeMasterDto[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<unknown>(null);
+
+  const [modalOpen, setModalOpen] = useState(false);
+  const [editing, setEditing] = useState<Row | null>(null);
+  const [saving, setSaving] = useState(false);
+
+  const [form, setForm] = useState({
+    statusCodeId: "",
+    statusStartDate: "",
+    statusEndDate: "",
+    comment: "",
+  });
+  const [banner, setBanner] = useState<{ title: string; message?: string } | null>(null);
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+
+  async function reload(): Promise<void> {
+    const list = await listAssetStatusLogs(asset.assetId);
+    setRows(list);
+  }
 
   useEffect(() => {
     let mounted = true;
@@ -31,9 +61,13 @@ export function StatusLogTab({ asset, caps }: AssetDetailsTabProps) {
       setLoading(true);
       setError(null);
       try {
-        const list = await listAssetStatusLogs(asset.assetId);
+        const [list, masters] = await Promise.all([
+          listAssetStatusLogs(asset.assetId),
+          queryStatusCodeMasters({ activeOnly: true, limit: 1000 }),
+        ]);
         if (!mounted) return;
         setRows(list);
+        setStatusCodes(masters);
       } catch (e) {
         if (!mounted) return;
         setError(e);
@@ -48,30 +82,128 @@ export function StatusLogTab({ asset, caps }: AssetDetailsTabProps) {
     };
   }, [asset.assetId]);
 
+  const statusCodeIndex = useMemo(() => {
+    const m = new Map<string, StatusCodeMasterDto>();
+    for (const s of statusCodes) m.set(String(s.statusCodeId), s);
+    return m;
+  }, [statusCodes]);
+
+  function openCreate(): void {
+    setEditing(null);
+    setForm({ statusCodeId: "", statusStartDate: "", statusEndDate: "", comment: "" });
+    setBanner(null);
+    setFieldErrors({});
+    setModalOpen(true);
+  }
+
+  function openEdit(r: Row): void {
+    setEditing(r);
+    setForm({
+      statusCodeId: r.statusCodeId !== null && r.statusCodeId !== undefined ? String(r.statusCodeId) : "",
+      statusStartDate: r.statusStartDate ?? "",
+      statusEndDate: r.statusEndDate ?? "",
+      comment: r.comment ?? "",
+    });
+    setBanner(null);
+    setFieldErrors({});
+    setModalOpen(true);
+  }
+
+  async function onSave(): Promise<void> {
+    if (!user?.username) {
+      setBanner({ title: "Not signed in", message: "Please login again." });
+      return;
+    }
+
+    setBanner(null);
+    setFieldErrors({});
+
+    const requiredErrors = validateRequiredStrings({
+      statusCodeId: form.statusCodeId,
+      statusStartDate: form.statusStartDate,
+    });
+
+    const code = requireInt(form.statusCodeId, "Status Code");
+    if (code.error) requiredErrors.statusCodeId = code.error;
+
+    if (Object.keys(requiredErrors).length > 0) {
+      setFieldErrors(requiredErrors);
+      setBanner({ title: "Validation failed", message: "Please correct the highlighted fields." });
+      return;
+    }
+
+    setSaving(true);
+    try {
+      const correlationId = crypto.randomUUID();
+      if (!editing) {
+        await createAssetStatusLog(asset.assetId, {
+          statusCodeId: code.value!,
+          statusStartDate: form.statusStartDate,
+          statusEndDate: form.statusEndDate.trim() ? form.statusEndDate : null,
+          comment: form.comment.trim() ? form.comment : null,
+          createdBy: user.username,
+          correlationId,
+        });
+        pushToast({ type: "success", title: "Status log entry created" });
+      } else {
+        await updateAssetStatusLog(asset.assetId, editing.assetStatusLogId, {
+          statusCodeId: code.value!,
+          statusStartDate: form.statusStartDate,
+          statusEndDate: form.statusEndDate.trim() ? form.statusEndDate : null,
+          comment: form.comment.trim() ? form.comment : null,
+          modifiedBy: user.username,
+          correlationId,
+        });
+        pushToast({ type: "success", title: "Status log entry updated" });
+      }
+
+      await reload();
+      setModalOpen(false);
+    } catch (e) {
+      const ex = extractErrors(e);
+      setBanner({ title: ex.title, message: ex.message });
+      setFieldErrors(ex.fieldErrors);
+    } finally {
+      setSaving(false);
+    }
+  }
+
   const columns: Column<Row>[] = useMemo(
     () => [
       {
-        key: "statusCodeId",
-        header: "Status Code ID",
-        render: (r) => <span className="font-mono text-xs">{r.statusCodeId ?? "-"}</span>,
+        key: "status",
+        header: "Status",
+        render: (r) => {
+          const id = r.statusCodeId !== null && r.statusCodeId !== undefined ? String(r.statusCodeId) : "";
+          const s = id ? statusCodeIndex.get(id) : undefined;
+          return (
+            <div>
+              <div className="text-sm font-semibold">{s?.statusDescription ?? s?.statusCode ?? "Unknown"}</div>
+              <div className="muted text-xs">StatusCodeId: <span className="font-mono">{id || "-"}</span></div>
+            </div>
+          );
+        },
       },
+      { key: "start", header: "From", render: (r) => <span className="text-sm">{r.statusStartDate ?? "-"}</span> },
+      { key: "end", header: "To", render: (r) => <span className="text-sm">{r.statusEndDate ?? "-"}</span> },
+      { key: "comment", header: "Comment", render: (r) => <span className="text-sm">{r.comment ?? "-"}</span> },
       {
-        key: "start",
-        header: "Start",
-        render: (r) => <span className="text-sm">{r.statusStartDate ?? "-"}</span>,
-      },
-      {
-        key: "end",
-        header: "End",
-        render: (r) => <span className="text-sm">{r.statusEndDate ?? "-"}</span>,
-      },
-      {
-        key: "comment",
-        header: "Comment",
-        render: (r) => <span className="text-sm">{r.comment ?? "-"}</span>,
+        key: "actions",
+        header: "",
+        widthClassName: "w-28",
+        render: (r) =>
+          caps.canEdit ? (
+            <button type="button" className="btn-ghost" onClick={() => openEdit(r)}>
+              Edit
+            </button>
+          ) : (
+            <button type="button" className="btn-ghost opacity-60" disabled title="Edit requires Editor or Admin role">
+              Edit
+            </button>
+          ),
       },
     ],
-    [],
+    [caps.canEdit, statusCodeIndex],
   );
 
   return (
@@ -86,20 +218,83 @@ export function StatusLogTab({ asset, caps }: AssetDetailsTabProps) {
         emptyMessage="No status log entries were found for this asset."
       >
         <div className="space-y-4">
-          {!caps.canEdit ? (
-            <div className="rounded-xl bg-slate-50 px-3 py-2 text-xs text-slate-700 dark:bg-slate-900/60 dark:text-slate-200">
-              Read-only mode ({roleLabel(caps.isViewer ? "Viewer" : undefined)}): editing is disabled.
-            </div>
-          ) : null}
-
-          <DataTable<Row>
-            columns={columns}
-            rows={rows}
-            rowKey={(r) => r.assetStatusLogId}
-            emptyLabel="No status log entries."
+          <CrudActionBar
+            title="Status Log"
+            description="Manage operating status over time (chronology validated by backend)."
+            caps={caps}
+            canCreate={caps.canCreate}
+            onCreate={openCreate}
+            createLabel="Create Status Entry"
           />
+
+          <DataTable<Row> columns={columns} rows={rows} rowKey={(r) => r.assetStatusLogId} emptyLabel="No status log entries." />
         </div>
       </TabStatePanel>
+
+      <Modal
+        open={modalOpen}
+        title={editing ? "Edit Status Log Entry" : "Create Status Log Entry"}
+        onClose={() => (saving ? null : setModalOpen(false))}
+        footer={
+          <>
+            <button className="btn-ghost" type="button" onClick={() => setModalOpen(false)} disabled={saving}>
+              Cancel
+            </button>
+            <button className="btn-primary" type="button" onClick={onSave} disabled={saving}>
+              {saving ? "Saving..." : "Save"}
+            </button>
+          </>
+        }
+      >
+        {banner ? (
+          <div className="mb-3 rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-900 dark:border-red-900/40 dark:bg-red-950/30 dark:text-red-100">
+            <div className="font-semibold">{banner.title}</div>
+            {banner.message ? <div className="mt-1">{banner.message}</div> : null}
+          </div>
+        ) : null}
+
+        <div className="space-y-3">
+          <label className="block">
+            <div className="label">Operating Status</div>
+            <select
+              className="input mt-1"
+              value={form.statusCodeId}
+              onChange={(e) => setForm((s) => ({ ...s, statusCodeId: e.target.value }))}
+            >
+              <option value="">Select…</option>
+              {statusCodes.map((s) => (
+                <option key={s.statusCodeId} value={s.statusCodeId}>
+                  {s.statusCode ? `${s.statusCode} — ` : ""}{s.statusDescription || s.statusCodeId}
+                </option>
+              ))}
+            </select>
+            {fieldErrors.statusCodeId ? <div className="mt-1 text-sm text-red-600">{fieldErrors.statusCodeId}</div> : null}
+          </label>
+
+          <FormInput
+            label="Status From Date"
+            value={form.statusStartDate}
+            onChange={(v) => setForm((s) => ({ ...s, statusStartDate: v }))}
+            error={fieldErrors.statusStartDate}
+            placeholder="YYYY-MM-DD"
+          />
+
+          <FormInput
+            label="Status To Date (optional)"
+            value={form.statusEndDate}
+            onChange={(v) => setForm((s) => ({ ...s, statusEndDate: v }))}
+            error={fieldErrors.statusEndDate}
+            placeholder="YYYY-MM-DD"
+          />
+
+          <FormInput
+            label="Comments (optional)"
+            value={form.comment}
+            onChange={(v) => setForm((s) => ({ ...s, comment: v }))}
+            error={fieldErrors.comment}
+          />
+        </div>
+      </Modal>
     </div>
   );
 }

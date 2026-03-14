@@ -419,10 +419,44 @@ export type SiteAssetRow = Record<string, unknown>;
 export type InputEfMappingRow = Record<string, unknown>;
 export type ThroughputRow = Record<string, unknown>;
 
-/** Minimal shape needed for Associated Input Parameters selector UX. */
+/** Input Parameter row (canonical child resource). */
 export type InputParameterDto = {
   inputParameterId: string;
   inputParameterName: string;
+
+  /** Optional master references (backend int64/int32). */
   uomId?: number | null;
+  reportingProgramId?: number | null;
+
+  /** BRD-required for in-use rows; backend may enforce */
+  inputType?: string | null;
+  dataEntryFrequency?: string | null;
+
   isActive?: boolean;
+};
+
+/** POST /api/assets/{assetId}/input-parameters */
+export type CreateInputParameterRequest = {
+  inputParameterName: string;
+  uomId?: number | null;
+  reportingProgramId?: number | null;
+  inputType?: string | null;
+  dataEntryFrequency?: string | null;
+  isActive?: boolean;
+
+  createdBy: string;
+  correlationId: string;
+};
+
+/** PUT /api/assets/{assetId}/input-parameters/{inputParameterId} */
+export type UpdateInputParameterRequest = {
+  inputParameterName: string;
+  uomId?: number | null;
+  reportingProgramId?: number | null;
+  inputType?: string | null;
+  dataEntryFrequency?: string | null;
+  isActive?: boolean;
+
+  modifiedBy: string;
+  correlationId: string;
 };

@@ -26,6 +26,8 @@ import type {
   EquationMasterDto,
   InputEfMappingRow,
   InputParameterDto,
+  CreateInputParameterRequest,
+  UpdateInputParameterRequest,
   ParentInputMappingDto,
   ReportingAttributeMappingDto,
   ReportingProgramMasterDto,
@@ -349,12 +351,18 @@ type BackendInputParameterDto = {
   inputParameterId?: number;
   inputParameterName?: string;
   uomId?: number | null;
+  reportingProgramId?: number | null;
+  inputType?: string | null;
+  dataEntryFrequency?: string | null;
   isActive?: boolean;
 
   // PascalCase
   InputParameterId?: number;
   InputParameterName?: string;
   UomId?: number | null;
+  ReportingProgramId?: number | null;
+  InputType?: string | null;
+  DataEntryFrequency?: string | null;
   IsActive?: boolean;
 };
 
@@ -366,6 +374,9 @@ function mapInputParameterFromBackend(
     inputParameterId: idNum !== undefined && idNum !== null ? String(idNum) : "",
     inputParameterName: (p.inputParameterName ?? p.InputParameterName ?? "") as string,
     uomId: p.uomId ?? p.UomId ?? null,
+    reportingProgramId: p.reportingProgramId ?? p.ReportingProgramId ?? null,
+    inputType: p.inputType ?? p.InputType ?? null,
+    dataEntryFrequency: p.dataEntryFrequency ?? p.DataEntryFrequency ?? null,
     isActive: p.isActive ?? p.IsActive ?? true,
   };
 }
@@ -390,6 +401,37 @@ export async function listInputParameters(
   return Array.isArray(rows)
     ? rows.map(mapInputParameterFromBackend).filter((r) => r.inputParameterId)
     : [];
+}
+
+// PUBLIC_INTERFACE
+export async function createInputParameter(
+  assetId: string,
+  req: CreateInputParameterRequest,
+): Promise<InputParameterDto> {
+  /** POST /api/assets/{assetId}/input-parameters */
+  const created = await apiRequest<BackendInputParameterDto>({
+    method: "POST",
+    path: `/api/assets/${encodeURIComponent(assetId)}/input-parameters`,
+    body: req,
+  });
+  return mapInputParameterFromBackend(created);
+}
+
+// PUBLIC_INTERFACE
+export async function updateInputParameter(
+  assetId: string,
+  inputParameterId: string,
+  req: UpdateInputParameterRequest,
+): Promise<InputParameterDto> {
+  /** PUT /api/assets/{assetId}/input-parameters/{inputParameterId} */
+  const updated = await apiRequest<BackendInputParameterDto>({
+    method: "PUT",
+    path: `/api/assets/${encodeURIComponent(
+      assetId,
+    )}/input-parameters/${encodeURIComponent(inputParameterId)}`,
+    body: req,
+  });
+  return mapInputParameterFromBackend(updated);
 }
 
 // PUBLIC_INTERFACE

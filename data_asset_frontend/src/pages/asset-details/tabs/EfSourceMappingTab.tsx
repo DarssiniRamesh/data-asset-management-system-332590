@@ -1,30 +1,48 @@
 import { useEffect, useMemo, useState } from "react";
-import { listEfSourceMappings } from "../../../api/endpoints";
+import { createEfSourceMapping, listEfSourceMappings, updateEfSourceMapping } from "../../../api/endpoints";
 import type { EfSourceMappingDto } from "../../../api/types";
 import { DataTable, type Column } from "../../../components/DataTable";
-import { roleLabel } from "../../../lib/rbac";
+import { FormInput } from "../../../components/FormInput";
+import { Modal } from "../../../components/Modal";
+import { useAuth } from "../../../state/AuthContext";
+import { useToasts } from "../../../state/ToastContext";
 import type { AssetDetailsTabProps } from "../AssetDetailsTab";
 import { useInputParameterSelection } from "../InputParameterSelectionContext";
 import { TabStatePanel } from "../TabStatePanel";
+import { CrudActionBar } from "../crud/CrudActionBar";
+import { extractErrors, validateRequiredStrings } from "../crud/crudFormUtils";
 
 type Row = EfSourceMappingDto;
 
 // PUBLIC_INTERFACE
 export function EfSourceMappingTab({ asset, caps }: AssetDetailsTabProps) {
-  /** Contract:
-   * Purpose:
-   *  - EF Source Mapping is scoped to (assetId, inputParameterId).
-   *  - inputParameterId MUST come from Associated Input Parameters tab selection (no manual entry).
+  /** BRD: EF Source Mapping CRUD
+   * Scope: assetId + selected inputParameterId
    * Backend:
-   *  - GET /api/assets/{assetId}/input-parameters/{inputParameterId}/ef-source-mappings
-   * RBAC:
-   *  - Viewer: can view; cannot create/update (no edit UI in this step).
+   *  - GET/POST /api/assets/{assetId}/input-parameters/{inputParameterId}/ef-source-mappings
+   *  - PUT /api/assets/{assetId}/input-parameters/{inputParameterId}/ef-source-mappings/{efSourceMappingId}
    */
   const { selectedInputParameterId } = useInputParameterSelection();
+  const { user } = useAuth();
+  const { pushToast } = useToasts();
 
   const [rows, setRows] = useState<Row[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<unknown>(null);
+
+  const [modalOpen, setModalOpen] = useState(false);
+  const [editing, setEditing] = useState<Row | null>(null);
+  const [saving, setSaving] = useState(false);
+
+  const [form, setForm] = useState({ efSourceId: "", isActive: true });
+  const [banner, setBanner] = useState<{ title: string; message?: string } | null>(null);
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+
+  async function reload(): Promise<void> {
+    if (!selectedInputParameterId) return;
+    const list = await listEfSourceMappings(asset.assetId, selectedInputParameterId);
+    setRows(list);
+  }
 
   useEffect(() => {
     let mounted = true;
@@ -57,20 +75,93 @@ export function EfSourceMappingTab({ asset, caps }: AssetDetailsTabProps) {
     };
   }, [asset.assetId, selectedInputParameterId]);
 
+  function openCreate(): void {
+    setEditing(null);
+    setForm({ efSourceId: "", isActive: true });
+    setBanner(null);
+    setFieldErrors({});
+    setModalOpen(true);
+  }
+
+  function openEdit(r: Row): void {
+    setEditing(r);
+    setForm({ efSourceId: r.efSourceId ?? "", isActive: r.isActive ?? true });
+    setBanner(null);
+    setFieldErrors({});
+    setModalOpen(true);
+  }
+
+  async function onSave(): Promise<void> {
+    if (!selectedInputParameterId) return;
+
+    if (!user?.username) {
+      setBanner({ title: "Not signed in", message: "Please login again." });
+      return;
+    }
+
+    setBanner(null);
+    setFieldErrors({});
+
+    const reqErrors = validateRequiredStrings({ efSourceId: form.efSourceId });
+    if (Object.keys(reqErrors).length > 0) {
+      setFieldErrors(reqErrors);
+      setBanner({ title: "Validation failed", message: "Please correct the highlighted fields." });
+      return;
+    }
+
+    setSaving(true);
+    try {
+      const correlationId = crypto.randomUUID();
+      if (!editing) {
+        await createEfSourceMapping(asset.assetId, selectedInputParameterId, {
+          efSourceId: form.efSourceId.trim(),
+          isActive: form.isActive,
+          createdBy: user.username,
+          correlationId,
+        });
+        pushToast({ type: "success", title: "EF source mapping created" });
+      } else {
+        await updateEfSourceMapping(asset.assetId, selectedInputParameterId, editing.efSourceMappingId, {
+          efSourceId: form.efSourceId.trim(),
+          isActive: form.isActive,
+          modifiedBy: user.username,
+          correlationId,
+        });
+        pushToast({ type: "success", title: "EF source mapping updated" });
+      }
+
+      await reload();
+      setModalOpen(false);
+    } catch (e) {
+      const ex = extractErrors(e);
+      setBanner({ title: ex.title, message: ex.message });
+      setFieldErrors(ex.fieldErrors);
+    } finally {
+      setSaving(false);
+    }
+  }
+
   const columns: Column<Row>[] = useMemo(
     () => [
+      { key: "efSourceId", header: "EF Source ID", render: (r) => <span className="font-mono text-xs">{r.efSourceId ?? "-"}</span> },
+      { key: "active", header: "Active", render: (r) => <span className="text-sm">{(r.isActive ?? true) ? "Yes" : "No"}</span> },
       {
-        key: "efSourceId",
-        header: "EF Source ID",
-        render: (r) => <span className="font-mono text-xs">{r.efSourceId ?? "-"}</span>,
-      },
-      {
-        key: "active",
-        header: "Active",
-        render: (r) => <span className="text-sm">{(r.isActive ?? true) ? "Yes" : "No"}</span>,
+        key: "actions",
+        header: "",
+        widthClassName: "w-28",
+        render: (r) =>
+          caps.canEdit ? (
+            <button type="button" className="btn-ghost" onClick={() => openEdit(r)}>
+              Edit
+            </button>
+          ) : (
+            <button type="button" className="btn-ghost opacity-60" disabled title="Edit requires Editor or Admin role">
+              Edit
+            </button>
+          ),
       },
     ],
-    [],
+    [caps.canEdit],
   );
 
   if (!selectedInputParameterId) {
@@ -99,24 +190,54 @@ export function EfSourceMappingTab({ asset, caps }: AssetDetailsTabProps) {
         emptyMessage="No EF source mappings were found for the selected input parameter."
       >
         <div className="space-y-4">
-          {!caps.canEdit ? (
-            <div className="rounded-xl bg-slate-50 px-3 py-2 text-xs text-slate-700 dark:bg-slate-900/60 dark:text-slate-200">
-              Read-only mode ({roleLabel(caps.isViewer ? "Viewer" : undefined)}): editing is disabled.
-            </div>
-          ) : null}
-
-          <div className="muted text-xs">
-            InputParameterId: <span className="font-mono font-semibold">{selectedInputParameterId}</span>
-          </div>
-
-          <DataTable<Row>
-            columns={columns}
-            rows={rows}
-            rowKey={(r) => r.efSourceMappingId}
-            emptyLabel="No EF source mappings."
+          <CrudActionBar
+            title="EF Source Mapping"
+            description={`InputParameterId: ${selectedInputParameterId}`}
+            caps={caps}
+            canCreate={caps.canCreate}
+            onCreate={openCreate}
+            createLabel="Create EF Mapping"
           />
+
+          <DataTable<Row> columns={columns} rows={rows} rowKey={(r) => r.efSourceMappingId} emptyLabel="No EF source mappings." />
         </div>
       </TabStatePanel>
+
+      <Modal
+        open={modalOpen}
+        title={editing ? "Edit EF Source Mapping" : "Create EF Source Mapping"}
+        onClose={() => (saving ? null : setModalOpen(false))}
+        footer={
+          <>
+            <button className="btn-ghost" type="button" onClick={() => setModalOpen(false)} disabled={saving}>
+              Cancel
+            </button>
+            <button className="btn-primary" type="button" onClick={onSave} disabled={saving}>
+              {saving ? "Saving..." : "Save"}
+            </button>
+          </>
+        }
+      >
+        {banner ? (
+          <div className="mb-3 rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-900 dark:border-red-900/40 dark:bg-red-950/30 dark:text-red-100">
+            <div className="font-semibold">{banner.title}</div>
+            {banner.message ? <div className="mt-1">{banner.message}</div> : null}
+          </div>
+        ) : null}
+
+        <div className="space-y-3">
+          <FormInput
+            label="EF Source ID"
+            value={form.efSourceId}
+            onChange={(v) => setForm((s) => ({ ...s, efSourceId: v }))}
+            error={fieldErrors.efSourceId}
+          />
+          <label className="flex items-center gap-2 text-sm">
+            <input type="checkbox" checked={form.isActive} onChange={(e) => setForm((s) => ({ ...s, isActive: e.target.checked }))} />
+            Active
+          </label>
+        </div>
+      </Modal>
     </div>
   );
 }
