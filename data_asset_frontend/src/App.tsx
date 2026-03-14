@@ -60,13 +60,33 @@ function App() {
     setLastResponse("");
 
     try {
+      /**
+       * Important: RequestInit.headers is `HeadersInit` (Headers | string[][] | Record<string,string>).
+       * Spreading it as an object breaks typing when it's a tuple array (it has `.length`, `.pop`, etc),
+       * and it can also lose duplicate header semantics.
+       *
+       * Merge precedence (same as previous implementation):
+       * 1) Default Content-Type
+       * 2) init.headers overrides defaults
+       * 3) Authorization overrides both
+       */
+      const headers = new Headers();
+      headers.set("Content-Type", "application/json");
+
+      if (init?.headers) {
+        const initHeaders = new Headers(init.headers);
+        initHeaders.forEach((value, key) => {
+          headers.set(key, value);
+        });
+      }
+
+      if (token) {
+        headers.set("Authorization", `Bearer ${token}`);
+      }
+
       const res = await fetch(`${backendUrl}${path}`, {
         ...init,
-        headers: {
-          "Content-Type": "application/json",
-          ...(init?.headers || {}),
-          ...authHeader,
-        },
+        headers,
       });
 
       const text = await res.text();
