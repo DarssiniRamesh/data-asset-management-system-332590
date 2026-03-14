@@ -63,8 +63,16 @@ function mapAssetFromBackend(a: BackendAssetDto): AssetDto {
   const assetIdNum = a.assetId ?? a.AssetId;
   const parentPseudoNum = a.parentPseudoAssetId ?? a.ParentPseudoAssetId;
 
+  // Important: assetId can legitimately be 0 in some environments (e.g., seeded/dev data).
+  // We must not collapse it to "" or it can lead to route params like "undefined".
+  const assetId =
+    assetIdNum !== undefined && assetIdNum !== null ? String(assetIdNum) : "";
+
+  const hasParentPseudo =
+    parentPseudoNum !== undefined && parentPseudoNum !== null;
+
   return {
-    assetId: assetIdNum !== undefined && assetIdNum !== null ? String(assetIdNum) : "",
+    assetId,
 
     siteId: (a.siteId ?? a.SiteId ?? "") as string,
     assetGroup: (a.assetGroup ?? a.AssetGroup ?? "") as string,
@@ -79,9 +87,9 @@ function mapAssetFromBackend(a: BackendAssetDto): AssetDto {
     stationaryFlag: a.stationaryFlag ?? a.StationaryFlag ?? null,
 
     // Backend uses null/non-null to indicate presence, but requires an explicit flag on requests.
-    requiresParentPseudo: Boolean(parentPseudoNum),
-    parentPseudoAssetId:
-      parentPseudoNum !== null && parentPseudoNum !== undefined ? String(parentPseudoNum) : null,
+    // Boolean(0) is false, but 0 might still be a valid FK value in some data sets, so check nullish instead.
+    requiresParentPseudo: hasParentPseudo,
+    parentPseudoAssetId: hasParentPseudo ? String(parentPseudoNum) : null,
 
     createdBy: a.createdBy ?? a.CreatedBy ?? null,
     modifiedBy: a.modifiedBy ?? a.ModifiedBy ?? null,
