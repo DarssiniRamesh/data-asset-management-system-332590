@@ -80,17 +80,17 @@ export function LoginPage() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5 }}
             >
-              <div className="glass rounded-2xl p-4 text-sm text-white/90">
+              <div className="glass rounded-2xl p-4 text-sm text-slate-900/90 dark:text-white/90">
                 <div className="flex items-center gap-2 font-semibold">
                   <Icon icon={FaLock} className="h-4 w-4" /> Built-in JWT
                 </div>
-                <div className="mt-1 text-white/80">
+                <div className="mt-1 text-slate-700 dark:text-white/80">
                   Authentication tokens are stored locally and applied consistently to all protected API requests.
                 </div>
               </div>
-              <div className="glass rounded-2xl p-4 text-sm text-white/90">
+              <div className="glass rounded-2xl p-4 text-sm text-slate-900/90 dark:text-white/90">
                 <div className="font-semibold">Modern UX</div>
-                <div className="mt-1 text-white/80">
+                <div className="mt-1 text-slate-700 dark:text-white/80">
                   Smooth transitions, reusable components, and a theme system with dark mode.
                 </div>
               </div>
