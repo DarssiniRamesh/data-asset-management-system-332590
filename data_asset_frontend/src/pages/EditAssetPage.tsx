@@ -111,7 +111,11 @@ export function EditAssetPage() {
         permitEuId: permitEuId.trim(),
 
         requiresParentPseudo,
-        parentPseudoAssetId: requiresParentPseudo ? parentPseudoAssetId.trim() : null,
+        parentPseudoAssetId: requiresParentPseudo
+          ? Number.isFinite(Number.parseInt(parentPseudoAssetId.trim(), 10))
+            ? Number.parseInt(parentPseudoAssetId.trim(), 10)
+            : null
+          : null,
 
         modifiedBy: user?.username || "frontend",
         correlationId: `corr-${Date.now()}`,

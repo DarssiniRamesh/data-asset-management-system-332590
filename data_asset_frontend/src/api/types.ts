@@ -31,7 +31,11 @@ export type AssetDto = {
 
   /** Backend requires this flag on create/update for conditional validation */
   requiresParentPseudo: boolean;
-  parentPseudoAssetId?: string | null;
+  /**
+   * Backend: ParentPseudoAssetId (int64, nullable).
+   * IMPORTANT: must be sent as a JSON number (or null), not a string, or ASP.NET deserialization will fail.
+   */
+  parentPseudoAssetId?: number | null;
 
   createdBy?: string | null;
   modifiedBy?: string | null;

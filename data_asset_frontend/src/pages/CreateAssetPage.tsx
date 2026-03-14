@@ -86,6 +86,10 @@ export function CreateAssetPage() {
 
     setSubmitting(true);
     try {
+      const parsedParentPseudoId = requiresParentPseudo
+        ? Number.parseInt(parentPseudoAssetId.trim(), 10)
+        : null;
+
       const req: CreateAssetRequest = {
         siteId,
         assetGroup,
@@ -95,7 +99,10 @@ export function CreateAssetPage() {
         globalUniqueAssetId: globalUniqueAssetId.trim(),
 
         requiresParentPseudo,
-        parentPseudoAssetId: requiresParentPseudo ? parentPseudoAssetId.trim() : null,
+        // Must be a JSON number (or null) to match backend `long? ParentPseudoAssetId`.
+        // If parsing fails, send null; client-side validation already requires the field to be present.
+        parentPseudoAssetId:
+          requiresParentPseudo && Number.isFinite(parsedParentPseudoId) ? parsedParentPseudoId : null,
 
         createdBy: createdBy.trim(),
         correlationId: correlationId.trim(),

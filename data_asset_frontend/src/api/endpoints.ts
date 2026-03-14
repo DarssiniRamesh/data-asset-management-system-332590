@@ -89,7 +89,7 @@ function mapAssetFromBackend(a: BackendAssetDto): AssetDto {
     // Backend uses null/non-null to indicate presence, but requires an explicit flag on requests.
     // Boolean(0) is false, but 0 might still be a valid FK value in some data sets, so check nullish instead.
     requiresParentPseudo: hasParentPseudo,
-    parentPseudoAssetId: hasParentPseudo ? String(parentPseudoNum) : null,
+    parentPseudoAssetId: hasParentPseudo ? parentPseudoNum! : null,
 
     createdBy: a.createdBy ?? a.CreatedBy ?? null,
     modifiedBy: a.modifiedBy ?? a.ModifiedBy ?? null,
