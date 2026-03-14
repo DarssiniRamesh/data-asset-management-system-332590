@@ -6,8 +6,10 @@ import type {
   AssetStatusLogDto,
   ControlDeviceMappingDto,
   ControlDeviceMasterDto,
+  AssetCopyLineageDto,
   CopyAssetRequest,
   CreateAdditionalAssetIdRequest,
+  CreateAssetCopyLineageRequest,
   CreateAssetPropertyRequest,
   CreateAssetRequest,
   CreateAssetStatusLogRequest,
@@ -230,6 +232,74 @@ export async function copyAsset(
     path: `/api/assets/${encodeURIComponent(assetId)}/copy`,
     body: req,
   });
+}
+
+type BackendAssetCopyLineageDto = {
+  assetCopyLineageId?: BackendId;
+  copyOperationId?: string | null;
+  sourceAssetId?: BackendId;
+  targetAssetId?: BackendId;
+  status?: string | null;
+  statusDetail?: string | null;
+  createdAt?: string | null;
+
+  AssetCopyLineageId?: BackendId;
+  CopyOperationId?: string | null;
+  SourceAssetId?: BackendId;
+  TargetAssetId?: BackendId;
+  Status?: string | null;
+  StatusDetail?: string | null;
+  CreatedAt?: string | null;
+};
+
+function mapAssetCopyLineageFromBackend(
+  b: BackendAssetCopyLineageDto,
+): AssetCopyLineageDto {
+  return {
+    assetCopyLineageId: toIdString(b.assetCopyLineageId ?? b.AssetCopyLineageId) || null,
+    copyOperationId: b.copyOperationId ?? b.CopyOperationId ?? null,
+    sourceAssetId: toIdString(b.sourceAssetId ?? b.SourceAssetId) || null,
+    targetAssetId: toIdString(b.targetAssetId ?? b.TargetAssetId) || null,
+    status: b.status ?? b.Status ?? null,
+    statusDetail: b.statusDetail ?? b.StatusDetail ?? null,
+    createdAt: b.createdAt ?? b.CreatedAt ?? null,
+  };
+}
+
+// PUBLIC_INTERFACE
+export async function createAssetCopyLineage(
+  req: CreateAssetCopyLineageRequest,
+): Promise<AssetCopyLineageDto> {
+  /** Contract: POST /api/asset-copy-lineage */
+  const created = await apiRequest<BackendAssetCopyLineageDto>({
+    method: "POST",
+    path: "/api/asset-copy-lineage",
+    body: req,
+  });
+  return mapAssetCopyLineageFromBackend(created);
+}
+
+// PUBLIC_INTERFACE
+export async function queryAssetCopyLineage(params?: {
+  copyOperationId?: string;
+  sourceAssetId?: string;
+  targetAssetId?: string;
+  limit?: number;
+}): Promise<AssetCopyLineageDto[]> {
+  /** Contract: GET /api/asset-copy-lineage?CopyOperationId=&SourceAssetId=&TargetAssetId=&Limit= */
+  const qs = new URLSearchParams();
+  if (params?.copyOperationId) qs.set("CopyOperationId", params.copyOperationId);
+  if (params?.sourceAssetId) qs.set("SourceAssetId", params.sourceAssetId);
+  if (params?.targetAssetId) qs.set("TargetAssetId", params.targetAssetId);
+  if (params?.limit !== undefined) qs.set("Limit", String(params.limit));
+  const suffix = qs.toString() ? `?${qs.toString()}` : "";
+
+  const rows = await apiRequest<BackendAssetCopyLineageDto[]>({
+    method: "GET",
+    path: `/api/asset-copy-lineage${suffix}`,
+  });
+
+  return Array.isArray(rows) ? rows.map(mapAssetCopyLineageFromBackend) : [];
 }
 
 /**

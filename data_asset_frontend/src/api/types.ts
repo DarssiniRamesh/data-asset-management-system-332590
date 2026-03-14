@@ -77,6 +77,33 @@ export type CopyAssetRequest = {
 };
 
 /**
+ * Asset copy lineage / replication status records.
+ * Backed by /api/asset-copy-lineage.
+ */
+export type AssetCopyLineageDto = {
+  assetCopyLineageId?: string | null;
+
+  copyOperationId?: string | null;
+
+  sourceAssetId?: string | null;
+  targetAssetId?: string | null;
+
+  /** e.g., Pending | InProgress | Completed | Failed (backend-defined) */
+  status?: string | null;
+  statusDetail?: string | null;
+
+  createdAt?: string | null;
+};
+
+export type CreateAssetCopyLineageRequest = {
+  copyOperationId: string;
+  sourceAssetId: number;
+  targetAssetId: number;
+  status?: string | null;
+  statusDetail?: string | null;
+};
+
+/**
  * ---- Canonical Asset Child Resources (BRD tabs) ----
  * These correspond to the canonical REST paths under /api/assets/{assetId}/...
  */
