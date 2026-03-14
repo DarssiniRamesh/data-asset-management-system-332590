@@ -81,10 +81,10 @@ export function InputParametersTab({ asset, caps }: AssetDetailsTabProps) {
     setRows(list);
 
     if (list.length > 0) {
-      const stillExists = selectedInputParameterId
-        ? list.some((r) => r.inputParameterId === selectedInputParameterId)
-        : false;
-      if (!selectedInputParameterId || !stillExists) {
+      const selectedNorm = selectedInputParameterId ? String(selectedInputParameterId) : null;
+      const stillExists = selectedNorm ? list.some((r) => String(r.inputParameterId) === selectedNorm) : false;
+
+      if (!selectedNorm || !stillExists) {
         setSelectedInputParameterId(list[0].inputParameterId);
       }
     } else {
@@ -112,10 +112,10 @@ export function InputParametersTab({ asset, caps }: AssetDetailsTabProps) {
         setRows(list);
 
         if (list.length > 0) {
-          const stillExists = selectedInputParameterId
-            ? list.some((r) => r.inputParameterId === selectedInputParameterId)
-            : false;
-          if (!selectedInputParameterId || !stillExists) {
+          const selectedNorm = selectedInputParameterId ? String(selectedInputParameterId) : null;
+          const stillExists = selectedNorm ? list.some((r) => String(r.inputParameterId) === selectedNorm) : false;
+
+          if (!selectedNorm || !stillExists) {
             setSelectedInputParameterId(list[0].inputParameterId);
           }
         } else {
