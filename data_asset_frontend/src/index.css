@@ -52,6 +52,36 @@ body {
     @apply inline-flex items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-800 shadow-sm transition hover:bg-slate-50 active:translate-y-[1px] focus:outline-none focus-visible:ring-4 focus-visible:ring-blue-500/20 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-100 dark:hover:bg-slate-900;
   }
 
+  /* Premium landing CTAs (opt-in; does not affect existing buttons elsewhere) */
+  .btn-primary-premium {
+    @apply relative inline-flex items-center justify-center gap-2 overflow-hidden rounded-xl px-4 py-2.5 text-sm font-semibold text-white shadow-soft transition focus:outline-none focus-visible:ring-4 focus-visible:ring-blue-500/30;
+    background-image: linear-gradient(135deg, rgba(37, 99, 235, 1), rgba(99, 102, 241, 0.9) 55%, rgba(245, 158, 11, 0.92));
+  }
+
+  .btn-primary-premium::after {
+    content: "";
+    @apply pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-300;
+    background: radial-gradient(600px 120px at 20% 0%, rgba(255, 255, 255, 0.22), transparent 60%);
+  }
+
+  .btn-primary-premium:hover::after {
+    opacity: 1;
+  }
+
+  .btn-primary-premium:active {
+    transform: translateY(1px);
+  }
+
+  .btn-secondary-premium {
+    @apply inline-flex items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white/70 px-4 py-2.5 text-sm font-semibold text-slate-800 shadow-sm backdrop-blur transition hover:bg-white active:translate-y-[1px] focus:outline-none focus-visible:ring-4 focus-visible:ring-blue-500/20 dark:border-slate-800 dark:bg-slate-950/40 dark:text-slate-100 dark:hover:bg-slate-950/60;
+  }
+
+  /* Premium gradient headline text */
+  .text-gradient {
+    @apply bg-clip-text text-transparent;
+    background-image: linear-gradient(135deg, rgba(37, 99, 235, 1), rgba(99, 102, 241, 0.95) 55%, rgba(245, 158, 11, 0.95));
+  }
+
   .btn-ghost {
     @apply inline-flex items-center justify-center gap-2 rounded-xl px-3 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-100 active:translate-y-[1px] focus:outline-none focus-visible:ring-4 focus-visible:ring-blue-500/20 dark:text-slate-200 dark:hover:bg-slate-800;
   }
@@ -100,6 +130,15 @@ body {
     .animate-float-slow,
     .animate-float-slower {
       animation: none !important;
+    }
+
+    .btn-primary-premium,
+    .btn-secondary-premium {
+      transition: none !important;
+    }
+
+    .btn-primary-premium::after {
+      display: none !important;
     }
   }
 }
