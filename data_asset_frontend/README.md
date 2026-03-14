@@ -22,10 +22,34 @@ Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
 
 Launches the test runner in interactive watch mode.
 
+### `npm run test:ci`
+
+Runs tests in non-interactive CI mode (sets `CI=true`).
+
 ### `npm run build`
 
 Builds the app for production to the `build` folder.\
 It correctly bundles React in production mode and optimizes the build for the best performance.
+
+## Coding standard tooling (lint/format)
+
+This frontend is configured to enforce consistent style via ESLint + Prettier.
+
+### `npm run lint`
+
+Runs ESLint in CI-friendly mode.
+
+### `npm run lint:fix`
+
+Runs ESLint with auto-fixes enabled.
+
+### `npm run format`
+
+Formats the codebase with Prettier (writes changes).
+
+### `npm run format:check`
+
+Checks formatting with Prettier (does not write changes; use in CI).
 
 ## Customization
 
