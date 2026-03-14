@@ -9,6 +9,8 @@ import { LoaderSpinner } from "../components/LoaderSpinner";
 import { Modal } from "../components/Modal";
 import { useToasts } from "../state/ToastContext";
 import { Breadcrumbs } from "../layout/Breadcrumbs";
+import { ApiError } from "../api/client";
+import { useAuth } from "../state/AuthContext";
 
 // PUBLIC_INTERFACE
 export function AssetsListPage() {
@@ -17,6 +19,7 @@ export function AssetsListPage() {
    * - Client-side search/filter/pagination (backend may later provide query params)
    */
   const { pushToast } = useToasts();
+  const { user } = useAuth();
   const [rows, setRows] = useState<AssetDto[]>([]);
   const [loading, setLoading] = useState(false);
   const [query, setQuery] = useState("");
@@ -98,11 +101,21 @@ export function AssetsListPage() {
     const id = deleteId;
     setDeleteId("");
     try {
-      await deleteAsset(id);
+      await deleteAsset(id, {
+        modifiedBy: user?.username || "frontend",
+        correlationId: `corr-${Date.now()}`,
+      });
       setRows((prev) => prev.filter((r) => r.assetId !== id));
       pushToast({ type: "success", title: "Asset deleted" });
     } catch (e) {
-      pushToast({ type: "error", title: "Delete failed", message: "Check your role (Admin required)." });
+      const msg =
+        e instanceof ApiError
+          ? e.details.bodyText || `HTTP ${e.details.status}`
+          : e instanceof Error
+            ? e.message
+            : String(e);
+
+      pushToast({ type: "error", title: "Delete failed", message: msg });
     }
   }
 

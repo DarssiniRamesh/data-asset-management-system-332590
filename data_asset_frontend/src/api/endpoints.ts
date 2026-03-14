@@ -3,6 +3,7 @@ import type {
   AssetDto,
   CopyAssetRequest,
   CreateAssetRequest,
+  DeleteAssetRequest,
   DevLoginRequest,
   DevLoginResponse,
   InputEfMappingRow,
@@ -10,6 +11,63 @@ import type {
   ThroughputRow,
   UpdateAssetRequest,
 } from "./types";
+
+type BackendAssetDto = {
+  AssetId: number;
+  SiteId: string;
+  AssetGroup: string;
+  ProcessGroup: string;
+  ProcessGroupOtherText?: string | null;
+  AssetName: string;
+  PermitEuId: string;
+  GlobalUniqueAssetId: string;
+  AssetDescription?: string | null;
+  StationaryFlag?: boolean | null;
+  ParentPseudoAssetId?: number | null;
+
+  // audit/trace
+  CreatedBy: string;
+  CreatedAt: string;
+  ModifiedBy: string;
+  ModifiedAt: string;
+  IsDeleted: boolean;
+  CorrelationId: string;
+};
+
+/**
+ * Convert backend AssetDto (PascalCase) into the UI's canonical camelCase AssetDto.
+ * This fixes create/list/get flows where the UI previously saw missing assetId.
+ */
+function mapAssetFromBackend(a: BackendAssetDto): AssetDto {
+  return {
+    assetId: String(a.AssetId),
+    siteId: a.SiteId,
+    assetGroup: a.AssetGroup,
+    processGroup: a.ProcessGroup,
+    processGroupOtherText: a.ProcessGroupOtherText ?? null,
+
+    assetName: a.AssetName,
+    permitEuId: a.PermitEuId,
+    globalUniqueAssetId: a.GlobalUniqueAssetId,
+
+    assetDescription: a.AssetDescription ?? null,
+    stationaryFlag: a.StationaryFlag ?? null,
+
+    // Backend uses null/non-null to indicate presence, but requires an explicit flag on requests.
+    requiresParentPseudo: Boolean(a.ParentPseudoAssetId),
+    parentPseudoAssetId: a.ParentPseudoAssetId !== null && a.ParentPseudoAssetId !== undefined ? String(a.ParentPseudoAssetId) : null,
+
+    createdBy: a.CreatedBy,
+    modifiedBy: a.ModifiedBy,
+
+    correlationId: a.CorrelationId,
+
+    createdAt: a.CreatedAt,
+    modifiedAt: a.ModifiedAt,
+
+    isDeleted: a.IsDeleted,
+  };
+}
 
 // PUBLIC_INTERFACE
 export async function login(req: DevLoginRequest): Promise<DevLoginResponse> {
@@ -24,36 +82,44 @@ export async function login(req: DevLoginRequest): Promise<DevLoginResponse> {
 // PUBLIC_INTERFACE
 export async function listAssets(): Promise<AssetDto[]> {
   /** Contract: returns all assets (server-side may cap). */
-  return apiRequest<AssetDto[]>({ method: "GET", path: "/api/assets" });
+  const list = await apiRequest<BackendAssetDto[]>({ method: "GET", path: "/api/assets" });
+  return Array.isArray(list) ? list.map(mapAssetFromBackend) : [];
 }
 
 // PUBLIC_INTERFACE
 export async function getAsset(assetId: string): Promise<AssetDto> {
   /** Contract: assetId must be a non-empty string. */
-  return apiRequest<AssetDto>({ method: "GET", path: `/api/assets/${encodeURIComponent(assetId)}` });
+  const a = await apiRequest<BackendAssetDto>({ method: "GET", path: `/api/assets/${encodeURIComponent(assetId)}` });
+  return mapAssetFromBackend(a);
 }
 
 // PUBLIC_INTERFACE
 export async function createAsset(req: CreateAssetRequest): Promise<AssetDto> {
   /** Contract: creates an asset and returns created AssetDto. */
-  return apiRequest<AssetDto>({ method: "POST", path: "/api/assets", body: req });
+  const created = await apiRequest<BackendAssetDto>({ method: "POST", path: "/api/assets", body: req });
+  return mapAssetFromBackend(created);
 }
 
 // PUBLIC_INTERFACE
 export async function updateAsset(req: UpdateAssetRequest): Promise<AssetDto> {
   /** Contract: updates asset; req.assetId required. */
   const { assetId, ...rest } = req;
-  return apiRequest<AssetDto>({
+  const updated = await apiRequest<BackendAssetDto>({
     method: "PUT",
     path: `/api/assets/${encodeURIComponent(assetId)}`,
-    body: { assetId, ...rest },
+    body: rest,
   });
+  return mapAssetFromBackend(updated);
 }
 
 // PUBLIC_INTERFACE
-export async function deleteAsset(assetId: string): Promise<void> {
-  /** Contract: deletes by assetId. */
-  return apiRequest<void>({ method: "DELETE", path: `/api/assets/${encodeURIComponent(assetId)}` });
+export async function deleteAsset(assetId: string, body: DeleteAssetRequest): Promise<void> {
+  /** Contract: deletes by assetId (requires body with audit fields). */
+  return apiRequest<void>({
+    method: "DELETE",
+    path: `/api/assets/${encodeURIComponent(assetId)}`,
+    body,
+  });
 }
 
 // PUBLIC_INTERFACE

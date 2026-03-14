@@ -7,17 +7,22 @@ import { FormInput } from "../components/FormInput";
 import { Tabs } from "../components/Tabs";
 import { useToasts } from "../state/ToastContext";
 import { LoaderSpinner } from "../components/LoaderSpinner";
+import { ApiError } from "../api/client";
+import { useAuth } from "../state/AuthContext";
 
 type TabId = "core" | "ids" | "metadata";
 
 // PUBLIC_INTERFACE
 export function CreateAssetPage() {
   /** Contract:
-   * - POST /api/assets
+   * - POST /api/assets (Editor/Admin required)
    * - Basic client validation; relies on backend validation for final constraints
    */
   const nav = useNavigate();
   const { pushToast } = useToasts();
+  const { user } = useAuth();
+
+  const canWrite = user?.role === "Editor" || user?.role === "Admin";
 
   const [tab, setTab] = useState<TabId>("core");
   const [submitting, setSubmitting] = useState(false);
@@ -29,7 +34,10 @@ export function CreateAssetPage() {
   const [permitEuId, setPermitEuId] = useState("P1");
   const [globalUniqueAssetId, setGlobalUniqueAssetId] = useState("");
 
-  const [createdBy, setCreatedBy] = useState("frontend");
+  // Backend-required flag for deterministic validation
+  const [requiresParentPseudo, setRequiresParentPseudo] = useState(false);
+
+  const [createdBy, setCreatedBy] = useState(() => user?.username || "frontend");
   const [correlationId, setCorrelationId] = useState(`corr-${Date.now()}`);
 
   const validation = useMemo(() => {
@@ -37,14 +45,22 @@ export function CreateAssetPage() {
     if (!assetName.trim()) errors.assetName = "Asset name is required";
     if (!siteId.trim()) errors.siteId = "Site is required";
     if (!globalUniqueAssetId.trim()) errors.globalUniqueAssetId = "Global unique asset id is required";
+    if (!correlationId.trim()) errors.correlationId = "Correlation id is required";
+    if (!createdBy.trim()) errors.createdBy = "Created by is required";
     return errors;
-  }, [assetName, siteId, globalUniqueAssetId]);
+  }, [assetName, siteId, globalUniqueAssetId, correlationId, createdBy]);
 
   async function onSubmit(): Promise<void> {
+    if (!canWrite) {
+      pushToast({ type: "error", title: "Insufficient permissions", message: "Editor or Admin role is required." });
+      return;
+    }
+
     if (Object.keys(validation).length > 0) {
       pushToast({ type: "error", title: "Fix validation errors" });
       return;
     }
+
     setSubmitting(true);
     try {
       const req: CreateAssetRequest = {
@@ -54,14 +70,26 @@ export function CreateAssetPage() {
         assetName: assetName.trim(),
         permitEuId,
         globalUniqueAssetId: globalUniqueAssetId.trim(),
-        createdBy,
-        correlationId,
+
+        requiresParentPseudo,
+
+        createdBy: createdBy.trim(),
+        correlationId: correlationId.trim(),
       };
+
       const created = await createAsset(req);
-      pushToast({ type: "success", title: "Asset created", message: created.assetName });
+
+      pushToast({ type: "success", title: "Asset created", message: `${created.assetName} (#${created.assetId})` });
       nav(`/app/assets/${created.assetId}`);
     } catch (e) {
-      pushToast({ type: "error", title: "Create failed", message: "Check your role (Editor required)." });
+      const msg =
+        e instanceof ApiError
+          ? e.details.bodyText || `HTTP ${e.details.status}`
+          : e instanceof Error
+            ? e.message
+            : String(e);
+
+      pushToast({ type: "error", title: "Create failed", message: msg });
     } finally {
       setSubmitting(false);
     }
@@ -131,6 +159,21 @@ export function CreateAssetPage() {
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <FormInput label="Created By" value={createdBy} onChange={setCreatedBy} />
             <FormInput label="Correlation ID" value={correlationId} onChange={setCorrelationId} />
+
+            <label className="block md:col-span-2">
+              <div className="label">Requires Parent Pseudo Asset?</div>
+              <select
+                className="input mt-1"
+                value={requiresParentPseudo ? "yes" : "no"}
+                onChange={(e) => setRequiresParentPseudo(e.target.value === "yes")}
+              >
+                <option value="no">No</option>
+                <option value="yes">Yes (parentPseudoAssetId becomes required)</option>
+              </select>
+              <div className="muted mt-1 text-xs">
+                Backend requires this flag for deterministic validation.
+              </div>
+            </label>
           </div>
         ) : null}
       </div>

@@ -14,22 +14,59 @@ export type DevLoginResponse = {
 };
 
 export type AssetDto = {
+  /** Backend: AssetId (int64) */
   assetId: string;
+
   siteId: string;
   assetGroup: string;
   processGroup: string;
+  processGroupOtherText?: string | null;
+
   assetName: string;
   permitEuId: string;
   globalUniqueAssetId: string;
+
+  assetDescription?: string | null;
+  stationaryFlag?: boolean | null;
+
+  /** Backend requires this flag on create/update for conditional validation */
+  requiresParentPseudo: boolean;
+  parentPseudoAssetId?: string | null;
+
   createdBy?: string | null;
-  correlationId?: string | null;
-  createdAtUtc?: string | null;
-  updatedAtUtc?: string | null;
+  modifiedBy?: string | null;
+
+  correlationId: string;
+
+  /** Backend: CreatedAt/ModifiedAt */
+  createdAt?: string | null;
+  modifiedAt?: string | null;
+
+  isDeleted?: boolean;
 };
 
-export type CreateAssetRequest = Omit<AssetDto, "assetId" | "createdAtUtc" | "updatedAtUtc">;
+/** Request payload for POST /api/assets */
+export type CreateAssetRequest = Omit<
+  AssetDto,
+  | "assetId"
+  | "modifiedBy"
+  | "createdAt"
+  | "modifiedAt"
+  | "isDeleted"
+>;
 
-export type UpdateAssetRequest = Partial<CreateAssetRequest> & { assetId: string };
+/** Request payload for PUT /api/assets/{assetId} */
+export type UpdateAssetRequest = Partial<CreateAssetRequest> & {
+  assetId: string;
+  modifiedBy: string;
+  correlationId: string;
+  requiresParentPseudo: boolean;
+};
+
+export type DeleteAssetRequest = {
+  modifiedBy: string;
+  correlationId: string;
+};
 
 export type CopyAssetRequest = {
   newAssetName: string;

@@ -5,16 +5,21 @@ import { Breadcrumbs } from "../layout/Breadcrumbs";
 import { FormInput } from "../components/FormInput";
 import { LoaderSpinner } from "../components/LoaderSpinner";
 import { useToasts } from "../state/ToastContext";
+import { ApiError } from "../api/client";
+import { useAuth } from "../state/AuthContext";
 
 // PUBLIC_INTERFACE
 export function EditAssetPage() {
   /** Contract:
    * - GET /api/assets/{assetId}
-   * - PUT /api/assets/{assetId}
+   * - PUT /api/assets/{assetId} (Editor/Admin required)
    */
   const { assetId } = useParams<{ assetId: string }>();
   const nav = useNavigate();
   const { pushToast } = useToasts();
+  const { user } = useAuth();
+
+  const canWrite = user?.role === "Editor" || user?.role === "Admin";
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -25,6 +30,8 @@ export function EditAssetPage() {
   const [processGroup, setProcessGroup] = useState("");
   const [permitEuId, setPermitEuId] = useState("");
   const [globalUniqueAssetId, setGlobalUniqueAssetId] = useState("");
+
+  const [requiresParentPseudo, setRequiresParentPseudo] = useState(false);
 
   useEffect(() => {
     let mounted = true;
@@ -40,6 +47,7 @@ export function EditAssetPage() {
         setProcessGroup(a.processGroup || "");
         setPermitEuId(a.permitEuId || "");
         setGlobalUniqueAssetId(a.globalUniqueAssetId || "");
+        setRequiresParentPseudo(Boolean(a.requiresParentPseudo));
       } catch (e) {
         pushToast({ type: "error", title: "Failed to load asset" });
       } finally {
@@ -60,6 +68,12 @@ export function EditAssetPage() {
 
   async function onSave(): Promise<void> {
     if (!assetId) return;
+
+    if (!canWrite) {
+      pushToast({ type: "error", title: "Insufficient permissions", message: "Editor or Admin role is required." });
+      return;
+    }
+
     if (Object.keys(validation).length > 0) {
       pushToast({ type: "error", title: "Fix validation errors" });
       return;
@@ -74,12 +88,24 @@ export function EditAssetPage() {
         assetGroup,
         processGroup,
         permitEuId,
-        globalUniqueAssetId,
+
+        requiresParentPseudo,
+
+        modifiedBy: user?.username || "frontend",
+        correlationId: `corr-${Date.now()}`,
       });
+
       pushToast({ type: "success", title: "Asset updated", message: updated.assetName });
       nav(`/app/assets/${assetId}`);
     } catch (e) {
-      pushToast({ type: "error", title: "Update failed", message: "Check your role (Editor required)." });
+      const msg =
+        e instanceof ApiError
+          ? e.details.bodyText || `HTTP ${e.details.status}`
+          : e instanceof Error
+            ? e.message
+            : String(e);
+
+      pushToast({ type: "error", title: "Update failed", message: msg });
     } finally {
       setSaving(false);
     }
@@ -117,6 +143,18 @@ export function EditAssetPage() {
             <FormInput label="Process Group" value={processGroup} onChange={setProcessGroup} />
             <FormInput label="Permit EU ID" value={permitEuId} onChange={setPermitEuId} />
             <FormInput label="Global Unique Asset ID" value={globalUniqueAssetId} onChange={setGlobalUniqueAssetId} />
+
+            <label className="block md:col-span-2">
+              <div className="label">Requires Parent Pseudo Asset?</div>
+              <select
+                className="input mt-1"
+                value={requiresParentPseudo ? "yes" : "no"}
+                onChange={(e) => setRequiresParentPseudo(e.target.value === "yes")}
+              >
+                <option value="no">No</option>
+                <option value="yes">Yes</option>
+              </select>
+            </label>
           </div>
         </div>
       )}
