@@ -9,6 +9,12 @@ import { CreateAssetPage } from "./pages/CreateAssetPage";
 import { EditAssetPage } from "./pages/EditAssetPage";
 import { CopyAssetPage } from "./pages/CopyAssetPage";
 import { AssetDetailsPage } from "./pages/AssetDetailsPage";
+import { SiteProfilesPage } from "./pages/section4/SiteProfilesPage";
+import { ChemicalRawMaterialsPage } from "./pages/section4/ChemicalRawMaterialsPage";
+import { ChemicalSdsPage } from "./pages/section4/ChemicalSdsPage";
+import { LabDataConfigurationsPage } from "./pages/section4/LabDataConfigurationsPage";
+import { WaterProcessConfigurationsPage } from "./pages/section4/WaterProcessConfigurationsPage";
+import { WwtsProcessStreamsPage } from "./pages/section4/WwtsProcessStreamsPage";
 import { AuthProvider } from "./state/AuthContext";
 import { ThemeProvider } from "./state/ThemeContext";
 import { ToastProvider } from "./state/ToastContext";
@@ -39,6 +45,14 @@ function App() {
                   <Route path="assets/:assetId" element={<AssetDetailsPage />} />
                   <Route path="assets/:assetId/edit" element={<EditAssetPage />} />
                   <Route path="assets/:assetId/copy" element={<CopyAssetPage />} />
+
+                  <Route path="section4/site-profile" element={<SiteProfilesPage />} />
+                  <Route path="section4/control-device-configuration" element={<div className="text-sm">Use Masters → Control Devices (existing module).</div>} />
+                  <Route path="section4/chemical-raw-materials" element={<ChemicalRawMaterialsPage />} />
+                  <Route path="section4/chemical-sds" element={<ChemicalSdsPage />} />
+                  <Route path="section4/lab-data" element={<LabDataConfigurationsPage />} />
+                  <Route path="section4/wwts-process-streams" element={<WwtsProcessStreamsPage />} />
+                  <Route path="section4/water-process" element={<WaterProcessConfigurationsPage />} />
                 </Route>
               </Route>
 

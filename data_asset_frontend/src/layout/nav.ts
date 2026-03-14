@@ -1,5 +1,5 @@
 import type { IconBaseProps } from "react-icons";
-import { FaClipboardList, FaHome, FaPlusCircle, FaTable } from "react-icons/fa";
+import { FaClipboardList, FaFlask, FaHome, FaPlusCircle, FaTable, FaTint } from "react-icons/fa";
 import type { Role } from "../api/types";
 import { can } from "../lib/rbac";
 
@@ -24,6 +24,15 @@ const ALL_NAV_ITEMS: NavItem[] = [
   { to: "/app", label: "Overview", icon: FaHome as unknown as NavIcon, requiredAction: "read" },
   { to: "/app/assets", label: "Assets", icon: FaTable as unknown as NavIcon, requiredAction: "read" },
   { to: "/app/assets/create", label: "Create", icon: FaPlusCircle as unknown as NavIcon, requiredAction: "create" },
+
+  // BRD §4 modules
+  { to: "/app/section4/site-profile", label: "Site Profile", icon: FaClipboardList as unknown as NavIcon, requiredAction: "read" },
+  { to: "/app/section4/chemical-raw-materials", label: "Chemicals (Raw)", icon: FaFlask as unknown as NavIcon, requiredAction: "read" },
+  { to: "/app/section4/chemical-sds", label: "Chemical SDS", icon: FaFlask as unknown as NavIcon, requiredAction: "read" },
+  { to: "/app/section4/lab-data", label: "Lab Data", icon: FaFlask as unknown as NavIcon, requiredAction: "read" },
+  { to: "/app/section4/wwts-process-streams", label: "WWTS Streams", icon: FaTint as unknown as NavIcon, requiredAction: "read" },
+  { to: "/app/section4/water-process", label: "Water Process", icon: FaTint as unknown as NavIcon, requiredAction: "read" },
+
   { to: "/", label: "Landing", icon: FaClipboardList as unknown as NavIcon },
 ];
 

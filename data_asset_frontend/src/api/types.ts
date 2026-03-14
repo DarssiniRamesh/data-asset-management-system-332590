@@ -1,5 +1,152 @@
 export type Role = "Admin" | "Editor" | "Viewer";
 
+export type SiteProfileDto = {
+  siteProfileId: string;
+  siteId: string;
+  createdBy: string | null;
+  createdAt: string | null;
+  modifiedBy: string | null;
+  modifiedAt: string | null;
+  correlationId: string;
+};
+
+export type CreateSiteProfileRequest = {
+  siteId: string;
+  createdBy: string;
+  correlationId: string;
+};
+
+export type UpdateSiteProfileRequest = {
+  siteId: string;
+  modifiedBy: string;
+  correlationId: string;
+};
+
+export type WwtsProcessStreamDto = {
+  wwtsProcessStreamId: string;
+  siteId: string;
+  streamName: string;
+  createdBy: string | null;
+  createdAt: string | null;
+  modifiedBy: string | null;
+  modifiedAt: string | null;
+  correlationId: string;
+};
+
+export type CreateWwtsProcessStreamRequest = {
+  siteId: string;
+  streamName: string;
+  createdBy: string;
+  correlationId: string;
+};
+
+export type UpdateWwtsProcessStreamRequest = {
+  siteId: string;
+  streamName: string;
+  modifiedBy: string;
+  correlationId: string;
+};
+
+export type ChemicalRawMaterialDto = {
+  chemicalRawMaterialId: string;
+  siteId: string;
+  chemicalName: string;
+  createdBy: string | null;
+  createdAt: string | null;
+  modifiedBy: string | null;
+  modifiedAt: string | null;
+  correlationId: string;
+};
+
+export type CreateChemicalRawMaterialRequest = {
+  siteId: string;
+  chemicalName: string;
+  createdBy: string;
+  correlationId: string;
+};
+
+export type UpdateChemicalRawMaterialRequest = {
+  siteId: string;
+  chemicalName: string;
+  modifiedBy: string;
+  correlationId: string;
+};
+
+export type ChemicalSdsDto = {
+  chemicalSdsId: string;
+  siteId: string;
+  chemicalName: string;
+  createdBy: string | null;
+  createdAt: string | null;
+  modifiedBy: string | null;
+  modifiedAt: string | null;
+  correlationId: string;
+};
+
+export type CreateChemicalSdsRequest = {
+  siteId: string;
+  chemicalName: string;
+  createdBy: string;
+  correlationId: string;
+};
+
+export type UpdateChemicalSdsRequest = {
+  siteId: string;
+  chemicalName: string;
+  modifiedBy: string;
+  correlationId: string;
+};
+
+export type LabDataConfigurationDto = {
+  labDataConfigurationId: string;
+  siteId: string;
+  configurationName: string;
+  createdBy: string | null;
+  createdAt: string | null;
+  modifiedBy: string | null;
+  modifiedAt: string | null;
+  correlationId: string;
+};
+
+export type CreateLabDataConfigurationRequest = {
+  siteId: string;
+  configurationName: string;
+  createdBy: string;
+  correlationId: string;
+};
+
+export type UpdateLabDataConfigurationRequest = {
+  siteId: string;
+  configurationName: string;
+  modifiedBy: string;
+  correlationId: string;
+};
+
+export type WaterProcessConfigurationDto = {
+  waterProcessConfigurationId: string;
+  siteId: string;
+  configurationName: string;
+  createdBy: string | null;
+  createdAt: string | null;
+  modifiedBy: string | null;
+  modifiedAt: string | null;
+  correlationId: string;
+};
+
+export type CreateWaterProcessConfigurationRequest = {
+  siteId: string;
+  configurationName: string;
+  createdBy: string;
+  correlationId: string;
+};
+
+export type UpdateWaterProcessConfigurationRequest = {
+  siteId: string;
+  configurationName: string;
+  modifiedBy: string;
+  correlationId: string;
+};
+
 export type DevLoginRequest = {
   username: string;
   role: Role;

@@ -1,5 +1,74 @@
 import { apiRequest } from "./client";
 import type {
+   AdditionalAssetIdDto,
+   AssetDto,
+   AssetPropertyDto,
+   AssetStatusLogDto,
+   ControlDeviceMappingDto,
+   ControlDeviceMasterDto,
+   AssetCopyLineageDto,
+   CopyAssetRequest,
++  ChemicalRawMaterialDto,
++  ChemicalSdsDto,
++  CreateChemicalRawMaterialRequest,
++  CreateChemicalSdsRequest,
++  CreateLabDataConfigurationRequest,
++  CreateSiteProfileRequest,
++  CreateWaterProcessConfigurationRequest,
++  CreateWwtsProcessStreamRequest,
+   CreateAdditionalAssetIdRequest,
+   CreateAssetCopyLineageRequest,
+   CreateAssetPropertyRequest,
+   CreateAssetRequest,
+   CreateAssetStatusLogRequest,
+   CreateControlDeviceMappingRequest,
+   CreateDataInputValueRequest,
+   CreateEfSourceMappingRequest,
+   CreateParentInputMappingRequest,
+   CreateReportingAttributeMappingRequest,
+   CreateThroughputEquationRequest,
+   CreateThroughputScalarRequest,
+   DeleteAssetRequest,
+   DevLoginRequest,
+   DevLoginResponse,
+   EquationMasterDto,
+   InputEfMappingRow,
+   InputParameterDto,
+   CreateInputParameterRequest,
+   UpdateInputParameterRequest,
++  LabDataConfigurationDto,
+   ParentInputMappingDto,
+   ReportingAttributeMappingDto,
+   ReportingProgramMasterDto,
++  SiteProfileDto,
+   SiteAssetRow,
+   StatusCodeMasterDto,
+   ThroughputEquationDto,
+   ThroughputRow,
+   ThroughputScalarDto,
+   UomMasterDto,
++  UpdateChemicalRawMaterialRequest,
++  UpdateChemicalSdsRequest,
++  UpdateLabDataConfigurationRequest,
++  UpdateSiteProfileRequest,
++  UpdateWaterProcessConfigurationRequest,
++  UpdateWwtsProcessStreamRequest,
+   UpdateAdditionalAssetIdRequest,
+   UpdateAssetPropertyRequest,
+   UpdateAssetRequest,
+   UpdateAssetStatusLogRequest,
+   UpdateControlDeviceMappingRequest,
+   UpdateDataInputValueRequest,
+   UpdateEfSourceMappingRequest,
+   UpdateParentInputMappingRequest,
+   UpdateReportingAttributeMappingRequest,
+   UpdateThroughputEquationRequest,
+   UpdateThroughputScalarRequest,
++  WaterProcessConfigurationDto,
++  WwtsProcessStreamDto,
+   DataInputValueDto,
+   EfSourceMappingDto,
+ } from "./types";
   AdditionalAssetIdDto,
   AssetDto,
   AssetPropertyDto,
@@ -1395,4 +1464,420 @@ export async function queryStatusCodeMasters(params?: {
         isActive: (r["isActive"] ?? r["IsActive"] ?? true) as boolean,
       }))
     : [];
+}
+
+/**
+ * ---- BRD Section 4 module endpoints ----
+ * These pages/modules were requested to be implemented end-to-end with CRUD + RBAC.
+ */
+
+type BackendSiteProfileDto = {
+  siteProfileId?: BackendId;
+  siteId?: string | null;
+
+  createdBy?: string | null;
+  createdAt?: string | null;
+  modifiedBy?: string | null;
+  modifiedAt?: string | null;
+  correlationId?: string | null;
+
+  SiteProfileId?: BackendId;
+  SiteId?: string | null;
+  CreatedBy?: string | null;
+  CreatedAt?: string | null;
+  ModifiedBy?: string | null;
+  ModifiedAt?: string | null;
+  CorrelationId?: string | null;
+};
+
+function mapSiteProfileFromBackend(b: BackendSiteProfileDto): SiteProfileDto {
+  return {
+    siteProfileId: toIdString(b.siteProfileId ?? b.SiteProfileId),
+    siteId: (b.siteId ?? b.SiteId ?? "") as string,
+    createdBy: b.createdBy ?? b.CreatedBy ?? null,
+    createdAt: b.createdAt ?? b.CreatedAt ?? null,
+    modifiedBy: b.modifiedBy ?? b.ModifiedBy ?? null,
+    modifiedAt: b.modifiedAt ?? b.ModifiedAt ?? null,
+    correlationId: (b.correlationId ?? b.CorrelationId ?? "") as string,
+  };
+}
+
+// PUBLIC_INTERFACE
+export async function listSiteProfiles(params?: { siteId?: string; limit?: number }): Promise<SiteProfileDto[]> {
+  const qs = new URLSearchParams();
+  if (params?.siteId) qs.set("siteId", params.siteId);
+  if (params?.limit !== undefined) qs.set("limit", String(params.limit));
+  const suffix = qs.toString() ? `?${qs.toString()}` : "";
+  const rows = await apiRequest<BackendSiteProfileDto[]>({ method: "GET", path: `/api/section4/site-profiles${suffix}` });
+  return Array.isArray(rows) ? rows.map(mapSiteProfileFromBackend) : [];
+}
+
+// PUBLIC_INTERFACE
+export async function createSiteProfile(req: CreateSiteProfileRequest): Promise<SiteProfileDto> {
+  const created = await apiRequest<BackendSiteProfileDto>({ method: "POST", path: "/api/section4/site-profiles", body: req });
+  return mapSiteProfileFromBackend(created);
+}
+
+// PUBLIC_INTERFACE
+export async function updateSiteProfile(siteProfileId: string, req: UpdateSiteProfileRequest): Promise<SiteProfileDto> {
+  const updated = await apiRequest<BackendSiteProfileDto>({
+    method: "PUT",
+    path: `/api/section4/site-profiles/${encodeURIComponent(siteProfileId)}`,
+    body: req,
+  });
+  return mapSiteProfileFromBackend(updated);
+}
+
+// PUBLIC_INTERFACE
+export async function deleteSiteProfile(siteProfileId: string, body: DeleteAssetRequest): Promise<void> {
+  return apiRequest<void>({
+    method: "DELETE",
+    path: `/api/section4/site-profiles/${encodeURIComponent(siteProfileId)}`,
+    body,
+  });
+}
+
+type BackendWwtsProcessStreamDto = {
+  wwtsProcessStreamId?: BackendId;
+  siteId?: string | null;
+  streamName?: string | null;
+
+  createdBy?: string | null;
+  createdAt?: string | null;
+  modifiedBy?: string | null;
+  modifiedAt?: string | null;
+  correlationId?: string | null;
+
+  WwtsProcessStreamId?: BackendId;
+  SiteId?: string | null;
+  StreamName?: string | null;
+  CreatedBy?: string | null;
+  CreatedAt?: string | null;
+  ModifiedBy?: string | null;
+  ModifiedAt?: string | null;
+  CorrelationId?: string | null;
+};
+
+function mapWwtsProcessStreamFromBackend(b: BackendWwtsProcessStreamDto): WwtsProcessStreamDto {
+  return {
+    wwtsProcessStreamId: toIdString(b.wwtsProcessStreamId ?? b.WwtsProcessStreamId),
+    siteId: (b.siteId ?? b.SiteId ?? "") as string,
+    streamName: (b.streamName ?? b.StreamName ?? "") as string,
+    createdBy: b.createdBy ?? b.CreatedBy ?? null,
+    createdAt: b.createdAt ?? b.CreatedAt ?? null,
+    modifiedBy: b.modifiedBy ?? b.ModifiedBy ?? null,
+    modifiedAt: b.modifiedAt ?? b.ModifiedAt ?? null,
+    correlationId: (b.correlationId ?? b.CorrelationId ?? "") as string,
+  };
+}
+
+// PUBLIC_INTERFACE
+export async function listWwtsProcessStreams(params?: { siteId?: string; limit?: number }): Promise<WwtsProcessStreamDto[]> {
+  const qs = new URLSearchParams();
+  if (params?.siteId) qs.set("siteId", params.siteId);
+  if (params?.limit !== undefined) qs.set("limit", String(params.limit));
+  const suffix = qs.toString() ? `?${qs.toString()}` : "";
+  const rows = await apiRequest<BackendWwtsProcessStreamDto[]>({ method: "GET", path: `/api/section4/wwts-process-streams${suffix}` });
+  return Array.isArray(rows) ? rows.map(mapWwtsProcessStreamFromBackend) : [];
+}
+
+// PUBLIC_INTERFACE
+export async function createWwtsProcessStream(req: CreateWwtsProcessStreamRequest): Promise<WwtsProcessStreamDto> {
+  const created = await apiRequest<BackendWwtsProcessStreamDto>({ method: "POST", path: "/api/section4/wwts-process-streams", body: req });
+  return mapWwtsProcessStreamFromBackend(created);
+}
+
+// PUBLIC_INTERFACE
+export async function updateWwtsProcessStream(wwtsProcessStreamId: string, req: UpdateWwtsProcessStreamRequest): Promise<WwtsProcessStreamDto> {
+  const updated = await apiRequest<BackendWwtsProcessStreamDto>({
+    method: "PUT",
+    path: `/api/section4/wwts-process-streams/${encodeURIComponent(wwtsProcessStreamId)}`,
+    body: req,
+  });
+  return mapWwtsProcessStreamFromBackend(updated);
+}
+
+// PUBLIC_INTERFACE
+export async function deleteWwtsProcessStream(wwtsProcessStreamId: string, body: DeleteAssetRequest): Promise<void> {
+  return apiRequest<void>({
+    method: "DELETE",
+    path: `/api/section4/wwts-process-streams/${encodeURIComponent(wwtsProcessStreamId)}`,
+    body,
+  });
+}
+
+type BackendChemicalRawMaterialDto = {
+  chemicalRawMaterialId?: BackendId;
+  siteId?: string | null;
+  chemicalName?: string | null;
+
+  createdBy?: string | null;
+  createdAt?: string | null;
+  modifiedBy?: string | null;
+  modifiedAt?: string | null;
+  correlationId?: string | null;
+
+  ChemicalRawMaterialId?: BackendId;
+  SiteId?: string | null;
+  ChemicalName?: string | null;
+  CreatedBy?: string | null;
+  CreatedAt?: string | null;
+  ModifiedBy?: string | null;
+  ModifiedAt?: string | null;
+  CorrelationId?: string | null;
+};
+
+function mapChemicalRawMaterialFromBackend(b: BackendChemicalRawMaterialDto): ChemicalRawMaterialDto {
+  return {
+    chemicalRawMaterialId: toIdString(b.chemicalRawMaterialId ?? b.ChemicalRawMaterialId),
+    siteId: (b.siteId ?? b.SiteId ?? "") as string,
+    chemicalName: (b.chemicalName ?? b.ChemicalName ?? "") as string,
+    createdBy: b.createdBy ?? b.CreatedBy ?? null,
+    createdAt: b.createdAt ?? b.CreatedAt ?? null,
+    modifiedBy: b.modifiedBy ?? b.ModifiedBy ?? null,
+    modifiedAt: b.modifiedAt ?? b.ModifiedAt ?? null,
+    correlationId: (b.correlationId ?? b.CorrelationId ?? "") as string,
+  };
+}
+
+// PUBLIC_INTERFACE
+export async function listChemicalRawMaterials(params?: { siteId?: string; limit?: number }): Promise<ChemicalRawMaterialDto[]> {
+  const qs = new URLSearchParams();
+  if (params?.siteId) qs.set("siteId", params.siteId);
+  if (params?.limit !== undefined) qs.set("limit", String(params.limit));
+  const suffix = qs.toString() ? `?${qs.toString()}` : "";
+  const rows = await apiRequest<BackendChemicalRawMaterialDto[]>({ method: "GET", path: `/api/section4/chemical-raw-materials${suffix}` });
+  return Array.isArray(rows) ? rows.map(mapChemicalRawMaterialFromBackend) : [];
+}
+
+// PUBLIC_INTERFACE
+export async function createChemicalRawMaterial(req: CreateChemicalRawMaterialRequest): Promise<ChemicalRawMaterialDto> {
+  const created = await apiRequest<BackendChemicalRawMaterialDto>({ method: "POST", path: "/api/section4/chemical-raw-materials", body: req });
+  return mapChemicalRawMaterialFromBackend(created);
+}
+
+// PUBLIC_INTERFACE
+export async function updateChemicalRawMaterial(chemicalRawMaterialId: string, req: UpdateChemicalRawMaterialRequest): Promise<ChemicalRawMaterialDto> {
+  const updated = await apiRequest<BackendChemicalRawMaterialDto>({
+    method: "PUT",
+    path: `/api/section4/chemical-raw-materials/${encodeURIComponent(chemicalRawMaterialId)}`,
+    body: req,
+  });
+  return mapChemicalRawMaterialFromBackend(updated);
+}
+
+// PUBLIC_INTERFACE
+export async function deleteChemicalRawMaterial(chemicalRawMaterialId: string, body: DeleteAssetRequest): Promise<void> {
+  return apiRequest<void>({
+    method: "DELETE",
+    path: `/api/section4/chemical-raw-materials/${encodeURIComponent(chemicalRawMaterialId)}`,
+    body,
+  });
+}
+
+type BackendChemicalSdsDto = {
+  chemicalSdsId?: BackendId;
+  siteId?: string | null;
+  chemicalName?: string | null;
+
+  createdBy?: string | null;
+  createdAt?: string | null;
+  modifiedBy?: string | null;
+  modifiedAt?: string | null;
+  correlationId?: string | null;
+
+  ChemicalSdsId?: BackendId;
+  SiteId?: string | null;
+  ChemicalName?: string | null;
+  CreatedBy?: string | null;
+  CreatedAt?: string | null;
+  ModifiedBy?: string | null;
+  ModifiedAt?: string | null;
+  CorrelationId?: string | null;
+};
+
+function mapChemicalSdsFromBackend(b: BackendChemicalSdsDto): ChemicalSdsDto {
+  return {
+    chemicalSdsId: toIdString(b.chemicalSdsId ?? b.ChemicalSdsId),
+    siteId: (b.siteId ?? b.SiteId ?? "") as string,
+    chemicalName: (b.chemicalName ?? b.ChemicalName ?? "") as string,
+    createdBy: b.createdBy ?? b.CreatedBy ?? null,
+    createdAt: b.createdAt ?? b.CreatedAt ?? null,
+    modifiedBy: b.modifiedBy ?? b.ModifiedBy ?? null,
+    modifiedAt: b.modifiedAt ?? b.ModifiedAt ?? null,
+    correlationId: (b.correlationId ?? b.CorrelationId ?? "") as string,
+  };
+}
+
+// PUBLIC_INTERFACE
+export async function listChemicalSds(params?: { siteId?: string; limit?: number }): Promise<ChemicalSdsDto[]> {
+  const qs = new URLSearchParams();
+  if (params?.siteId) qs.set("siteId", params.siteId);
+  if (params?.limit !== undefined) qs.set("limit", String(params.limit));
+  const suffix = qs.toString() ? `?${qs.toString()}` : "";
+  const rows = await apiRequest<BackendChemicalSdsDto[]>({ method: "GET", path: `/api/section4/chemical-sds${suffix}` });
+  return Array.isArray(rows) ? rows.map(mapChemicalSdsFromBackend) : [];
+}
+
+// PUBLIC_INTERFACE
+export async function createChemicalSds(req: CreateChemicalSdsRequest): Promise<ChemicalSdsDto> {
+  const created = await apiRequest<BackendChemicalSdsDto>({ method: "POST", path: "/api/section4/chemical-sds", body: req });
+  return mapChemicalSdsFromBackend(created);
+}
+
+// PUBLIC_INTERFACE
+export async function updateChemicalSds(chemicalSdsId: string, req: UpdateChemicalSdsRequest): Promise<ChemicalSdsDto> {
+  const updated = await apiRequest<BackendChemicalSdsDto>({
+    method: "PUT",
+    path: `/api/section4/chemical-sds/${encodeURIComponent(chemicalSdsId)}`,
+    body: req,
+  });
+  return mapChemicalSdsFromBackend(updated);
+}
+
+// PUBLIC_INTERFACE
+export async function deleteChemicalSds(chemicalSdsId: string, body: DeleteAssetRequest): Promise<void> {
+  return apiRequest<void>({
+    method: "DELETE",
+    path: `/api/section4/chemical-sds/${encodeURIComponent(chemicalSdsId)}`,
+    body,
+  });
+}
+
+type BackendLabDataConfigurationDto = {
+  labDataConfigurationId?: BackendId;
+  siteId?: string | null;
+  configurationName?: string | null;
+
+  createdBy?: string | null;
+  createdAt?: string | null;
+  modifiedBy?: string | null;
+  modifiedAt?: string | null;
+  correlationId?: string | null;
+
+  LabDataConfigurationId?: BackendId;
+  SiteId?: string | null;
+  ConfigurationName?: string | null;
+  CreatedBy?: string | null;
+  CreatedAt?: string | null;
+  ModifiedBy?: string | null;
+  ModifiedAt?: string | null;
+  CorrelationId?: string | null;
+};
+
+function mapLabDataConfigurationFromBackend(b: BackendLabDataConfigurationDto): LabDataConfigurationDto {
+  return {
+    labDataConfigurationId: toIdString(b.labDataConfigurationId ?? b.LabDataConfigurationId),
+    siteId: (b.siteId ?? b.SiteId ?? "") as string,
+    configurationName: (b.configurationName ?? b.ConfigurationName ?? "") as string,
+    createdBy: b.createdBy ?? b.CreatedBy ?? null,
+    createdAt: b.createdAt ?? b.CreatedAt ?? null,
+    modifiedBy: b.modifiedBy ?? b.ModifiedBy ?? null,
+    modifiedAt: b.modifiedAt ?? b.ModifiedAt ?? null,
+    correlationId: (b.correlationId ?? b.CorrelationId ?? "") as string,
+  };
+}
+
+// PUBLIC_INTERFACE
+export async function listLabDataConfigurations(params?: { siteId?: string; limit?: number }): Promise<LabDataConfigurationDto[]> {
+  const qs = new URLSearchParams();
+  if (params?.siteId) qs.set("siteId", params.siteId);
+  if (params?.limit !== undefined) qs.set("limit", String(params.limit));
+  const suffix = qs.toString() ? `?${qs.toString()}` : "";
+  const rows = await apiRequest<BackendLabDataConfigurationDto[]>({ method: "GET", path: `/api/section4/lab-data-configurations${suffix}` });
+  return Array.isArray(rows) ? rows.map(mapLabDataConfigurationFromBackend) : [];
+}
+
+// PUBLIC_INTERFACE
+export async function createLabDataConfiguration(req: CreateLabDataConfigurationRequest): Promise<LabDataConfigurationDto> {
+  const created = await apiRequest<BackendLabDataConfigurationDto>({ method: "POST", path: "/api/section4/lab-data-configurations", body: req });
+  return mapLabDataConfigurationFromBackend(created);
+}
+
+// PUBLIC_INTERFACE
+export async function updateLabDataConfiguration(labDataConfigurationId: string, req: UpdateLabDataConfigurationRequest): Promise<LabDataConfigurationDto> {
+  const updated = await apiRequest<BackendLabDataConfigurationDto>({
+    method: "PUT",
+    path: `/api/section4/lab-data-configurations/${encodeURIComponent(labDataConfigurationId)}`,
+    body: req,
+  });
+  return mapLabDataConfigurationFromBackend(updated);
+}
+
+// PUBLIC_INTERFACE
+export async function deleteLabDataConfiguration(labDataConfigurationId: string, body: DeleteAssetRequest): Promise<void> {
+  return apiRequest<void>({
+    method: "DELETE",
+    path: `/api/section4/lab-data-configurations/${encodeURIComponent(labDataConfigurationId)}`,
+    body,
+  });
+}
+
+type BackendWaterProcessConfigurationDto = {
+  waterProcessConfigurationId?: BackendId;
+  siteId?: string | null;
+  configurationName?: string | null;
+
+  createdBy?: string | null;
+  createdAt?: string | null;
+  modifiedBy?: string | null;
+  modifiedAt?: string | null;
+  correlationId?: string | null;
+
+  WaterProcessConfigurationId?: BackendId;
+  SiteId?: string | null;
+  ConfigurationName?: string | null;
+  CreatedBy?: string | null;
+  CreatedAt?: string | null;
+  ModifiedBy?: string | null;
+  ModifiedAt?: string | null;
+  CorrelationId?: string | null;
+};
+
+function mapWaterProcessConfigurationFromBackend(b: BackendWaterProcessConfigurationDto): WaterProcessConfigurationDto {
+  return {
+    waterProcessConfigurationId: toIdString(b.waterProcessConfigurationId ?? b.WaterProcessConfigurationId),
+    siteId: (b.siteId ?? b.SiteId ?? "") as string,
+    configurationName: (b.configurationName ?? b.ConfigurationName ?? "") as string,
+    createdBy: b.createdBy ?? b.CreatedBy ?? null,
+    createdAt: b.createdAt ?? b.CreatedAt ?? null,
+    modifiedBy: b.modifiedBy ?? b.ModifiedBy ?? null,
+    modifiedAt: b.modifiedAt ?? b.ModifiedAt ?? null,
+    correlationId: (b.correlationId ?? b.CorrelationId ?? "") as string,
+  };
+}
+
+// PUBLIC_INTERFACE
+export async function listWaterProcessConfigurations(params?: { siteId?: string; limit?: number }): Promise<WaterProcessConfigurationDto[]> {
+  const qs = new URLSearchParams();
+  if (params?.siteId) qs.set("siteId", params.siteId);
+  if (params?.limit !== undefined) qs.set("limit", String(params.limit));
+  const suffix = qs.toString() ? `?${qs.toString()}` : "";
+  const rows = await apiRequest<BackendWaterProcessConfigurationDto[]>({ method: "GET", path: `/api/section4/water-process-configurations${suffix}` });
+  return Array.isArray(rows) ? rows.map(mapWaterProcessConfigurationFromBackend) : [];
+}
+
+// PUBLIC_INTERFACE
+export async function createWaterProcessConfiguration(req: CreateWaterProcessConfigurationRequest): Promise<WaterProcessConfigurationDto> {
+  const created = await apiRequest<BackendWaterProcessConfigurationDto>({ method: "POST", path: "/api/section4/water-process-configurations", body: req });
+  return mapWaterProcessConfigurationFromBackend(created);
+}
+
+// PUBLIC_INTERFACE
+export async function updateWaterProcessConfiguration(waterProcessConfigurationId: string, req: UpdateWaterProcessConfigurationRequest): Promise<WaterProcessConfigurationDto> {
+  const updated = await apiRequest<BackendWaterProcessConfigurationDto>({
+    method: "PUT",
+    path: `/api/section4/water-process-configurations/${encodeURIComponent(waterProcessConfigurationId)}`,
+    body: req,
+  });
+  return mapWaterProcessConfigurationFromBackend(updated);
+}
+
+// PUBLIC_INTERFACE
+export async function deleteWaterProcessConfiguration(waterProcessConfigurationId: string, body: DeleteAssetRequest): Promise<void> {
+  return apiRequest<void>({
+    method: "DELETE",
+    path: `/api/section4/water-process-configurations/${encodeURIComponent(waterProcessConfigurationId)}`,
+    body,
+  });
 }
