@@ -76,6 +76,318 @@ export type CopyAssetRequest = {
   newAssetName: string;
 };
 
+/**
+ * ---- Canonical Asset Child Resources (BRD tabs) ----
+ * These correspond to the canonical REST paths under /api/assets/{assetId}/...
+ */
+
+export type AssetStatusLogDto = {
+  assetStatusLogId: string;
+  statusCodeId?: number | null;
+  statusStartDate?: string | null;
+  statusEndDate?: string | null;
+  comment?: string | null;
+  createdBy?: string | null;
+  createdAt?: string | null;
+  modifiedBy?: string | null;
+  modifiedAt?: string | null;
+};
+
+export type CreateAssetStatusLogRequest = {
+  statusCodeId: number;
+  statusStartDate: string;
+  statusEndDate?: string | null;
+  comment?: string | null;
+  createdBy: string;
+  correlationId: string;
+};
+
+export type UpdateAssetStatusLogRequest = {
+  statusCodeId: number;
+  statusStartDate: string;
+  statusEndDate?: string | null;
+  comment?: string | null;
+  modifiedBy: string;
+  correlationId: string;
+};
+
+export type AdditionalAssetIdDto = {
+  additionalAssetId: string;
+  idType?: string | null;
+  idValue?: string | null;
+  isActive?: boolean;
+  createdBy?: string | null;
+  createdAt?: string | null;
+  modifiedBy?: string | null;
+  modifiedAt?: string | null;
+};
+
+export type CreateAdditionalAssetIdRequest = {
+  idType: string;
+  idValue: string;
+  isActive?: boolean;
+  createdBy: string;
+  correlationId: string;
+};
+
+export type UpdateAdditionalAssetIdRequest = {
+  idType: string;
+  idValue: string;
+  isActive?: boolean;
+  modifiedBy: string;
+  correlationId: string;
+};
+
+export type AssetPropertyDto = {
+  assetPropertyId: string;
+  propertyName?: string | null;
+  propertyValue?: string | null;
+  isActive?: boolean;
+  createdBy?: string | null;
+  createdAt?: string | null;
+  modifiedBy?: string | null;
+  modifiedAt?: string | null;
+};
+
+export type CreateAssetPropertyRequest = {
+  propertyName: string;
+  propertyValue: string;
+  isActive?: boolean;
+  createdBy: string;
+  correlationId: string;
+};
+
+export type UpdateAssetPropertyRequest = {
+  propertyName: string;
+  propertyValue: string;
+  isActive?: boolean;
+  modifiedBy: string;
+  correlationId: string;
+};
+
+export type ControlDeviceMappingDto = {
+  controlDeviceMappingId: string;
+  controlDeviceId?: number | null;
+  controlDeviceTag?: string | null;
+  isActive?: boolean;
+  createdBy?: string | null;
+  createdAt?: string | null;
+  modifiedBy?: string | null;
+  modifiedAt?: string | null;
+};
+
+export type CreateControlDeviceMappingRequest = {
+  controlDeviceId: number;
+  controlDeviceTag?: string | null;
+  isActive?: boolean;
+  createdBy: string;
+  correlationId: string;
+};
+
+export type UpdateControlDeviceMappingRequest = {
+  controlDeviceId: number;
+  controlDeviceTag?: string | null;
+  isActive?: boolean;
+  modifiedBy: string;
+  correlationId: string;
+};
+
+export type ReportingAttributeMappingDto = {
+  reportingAttributeMappingId: string;
+  reportingProgramId?: number | null;
+  reportingAttributeName?: string | null;
+  reportingAttributeValue?: string | null;
+  isActive?: boolean;
+  createdBy?: string | null;
+  createdAt?: string | null;
+  modifiedBy?: string | null;
+  modifiedAt?: string | null;
+};
+
+export type CreateReportingAttributeMappingRequest = {
+  reportingProgramId: number;
+  reportingAttributeName: string;
+  reportingAttributeValue: string;
+  isActive?: boolean;
+  createdBy: string;
+  correlationId: string;
+};
+
+export type UpdateReportingAttributeMappingRequest = {
+  reportingProgramId: number;
+  reportingAttributeName: string;
+  reportingAttributeValue: string;
+  isActive?: boolean;
+  modifiedBy: string;
+  correlationId: string;
+};
+
+export type ParentInputMappingDto = {
+  parentInputMappingId: string;
+  parentInputParameterId?: number | null;
+  isActive?: boolean;
+  createdBy?: string | null;
+  createdAt?: string | null;
+  modifiedBy?: string | null;
+  modifiedAt?: string | null;
+};
+
+export type CreateParentInputMappingRequest = {
+  parentInputParameterId: number;
+  isActive?: boolean;
+  createdBy: string;
+  correlationId: string;
+};
+
+export type UpdateParentInputMappingRequest = {
+  parentInputParameterId: number;
+  isActive?: boolean;
+  modifiedBy: string;
+  correlationId: string;
+};
+
+export type EfSourceMappingDto = {
+  efSourceMappingId: string;
+  efSourceId?: string | null;
+  isActive?: boolean;
+  createdBy?: string | null;
+  createdAt?: string | null;
+  modifiedBy?: string | null;
+  modifiedAt?: string | null;
+};
+
+export type CreateEfSourceMappingRequest = {
+  efSourceId: string;
+  isActive?: boolean;
+  createdBy: string;
+  correlationId: string;
+};
+
+export type UpdateEfSourceMappingRequest = {
+  efSourceId: string;
+  isActive?: boolean;
+  modifiedBy: string;
+  correlationId: string;
+};
+
+export type ThroughputEquationDto = {
+  throughputEquationId: string;
+  equationMasterId?: number | null;
+  equationText?: string | null;
+  isActive?: boolean;
+};
+
+export type CreateThroughputEquationRequest = {
+  equationMasterId: number;
+  equationText?: string | null;
+  isActive?: boolean;
+  createdBy: string;
+  correlationId: string;
+};
+
+export type UpdateThroughputEquationRequest = {
+  equationMasterId: number;
+  equationText?: string | null;
+  isActive?: boolean;
+  modifiedBy: string;
+  correlationId: string;
+};
+
+export type ThroughputScalarDto = {
+  throughputScalarId: string;
+  scalarName?: string | null;
+  scalarValue?: number | null;
+  uomId?: number | null;
+  isActive?: boolean;
+};
+
+export type CreateThroughputScalarRequest = {
+  scalarName: string;
+  scalarValue: number;
+  uomId?: number | null;
+  isActive?: boolean;
+  createdBy: string;
+  correlationId: string;
+};
+
+export type UpdateThroughputScalarRequest = {
+  scalarName: string;
+  scalarValue: number;
+  uomId?: number | null;
+  isActive?: boolean;
+  modifiedBy: string;
+  correlationId: string;
+};
+
+export type DataInputValueDto = {
+  dataInputValueId: string;
+  valueText?: string | null;
+  valueNumber?: number | null;
+  valueDateTime?: string | null;
+  isActive?: boolean;
+};
+
+export type CreateDataInputValueRequest = {
+  valueText?: string | null;
+  valueNumber?: number | null;
+  valueDateTime?: string | null;
+  isActive?: boolean;
+  createdBy: string;
+  correlationId: string;
+};
+
+export type UpdateDataInputValueRequest = {
+  valueText?: string | null;
+  valueNumber?: number | null;
+  valueDateTime?: string | null;
+  isActive?: boolean;
+  modifiedBy: string;
+  correlationId: string;
+};
+
+/**
+ * ---- Master Data Endpoints (/api/masters/...) ----
+ */
+
+export type UomMasterDto = {
+  uomId: string;
+  uomName?: string | null;
+  uomCode?: string | null;
+  isActive?: boolean;
+};
+
+export type ReportingProgramMasterDto = {
+  reportingProgramId: string;
+  programName?: string | null;
+  isActive?: boolean;
+};
+
+export type ControlDeviceMasterDto = {
+  controlDeviceId: string;
+  siteId?: string | null;
+  deviceName?: string | null;
+  deviceTag?: string | null;
+  isActive?: boolean;
+};
+
+export type EquationMasterDto = {
+  equationMasterId: string;
+  equationName?: string | null;
+  equationText?: string | null;
+  isActive?: boolean;
+};
+
+export type StatusCodeMasterDto = {
+  statusCodeId: string;
+  statusCode?: string | null;
+  statusDescription?: string | null;
+  isActive?: boolean;
+};
+
+/**
+ * ---- Existing loose/legacy rows used by earlier steps ----
+ * (Kept for compatibility with already-wired legacy endpoints in endpoints.ts)
+ */
 export type SiteAssetRow = Record<string, unknown>;
 export type InputEfMappingRow = Record<string, unknown>;
 export type ThroughputRow = Record<string, unknown>;
