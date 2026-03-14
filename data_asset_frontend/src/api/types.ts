@@ -79,3 +79,11 @@ export type CopyAssetRequest = {
 export type SiteAssetRow = Record<string, unknown>;
 export type InputEfMappingRow = Record<string, unknown>;
 export type ThroughputRow = Record<string, unknown>;
+
+/** Minimal shape needed for Associated Input Parameters selector UX. */
+export type InputParameterDto = {
+  inputParameterId: string;
+  inputParameterName: string;
+  uomId?: number | null;
+  isActive?: boolean;
+};

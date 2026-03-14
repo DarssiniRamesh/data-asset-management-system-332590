@@ -7,6 +7,7 @@ import type {
   DevLoginRequest,
   DevLoginResponse,
   InputEfMappingRow,
+  InputParameterDto,
   SiteAssetRow,
   ThroughputRow,
   UpdateAssetRequest,
@@ -202,6 +203,48 @@ export async function createInputEfSourceMapping(
 // PUBLIC_INTERFACE
 export async function manageSiteAssets(payload: SiteAssetRow): Promise<unknown> {
   return apiRequest<unknown>({ method: "POST", path: "/api/siteassets/managesiteassets", body: payload });
+}
+
+type BackendInputParameterDto = {
+  // camelCase
+  inputParameterId?: number;
+  inputParameterName?: string;
+  uomId?: number | null;
+  isActive?: boolean;
+
+  // PascalCase
+  InputParameterId?: number;
+  InputParameterName?: string;
+  UomId?: number | null;
+  IsActive?: boolean;
+};
+
+function mapInputParameterFromBackend(p: BackendInputParameterDto): InputParameterDto {
+  const idNum = p.inputParameterId ?? p.InputParameterId;
+  return {
+    inputParameterId: idNum !== undefined && idNum !== null ? String(idNum) : "",
+    inputParameterName: (p.inputParameterName ?? p.InputParameterName ?? "") as string,
+    uomId: p.uomId ?? p.UomId ?? null,
+    isActive: p.isActive ?? p.IsActive ?? true,
+  };
+}
+
+// PUBLIC_INTERFACE
+export async function listInputParameters(assetId: string): Promise<InputParameterDto[]> {
+  /** Contract:
+   * Inputs:
+   *  - assetId: string
+   * Output:
+   *  - array of InputParameterDto
+   * Notes:
+   *  - Used by BRD step 04.01 as the primary selector feeding other tabs.
+   */
+  const rows = await apiRequest<BackendInputParameterDto[]>({
+    method: "GET",
+    path: `/api/assets/${encodeURIComponent(assetId)}/input-parameters`,
+  });
+
+  return Array.isArray(rows) ? rows.map(mapInputParameterFromBackend).filter((r) => r.inputParameterId) : [];
 }
 
 // PUBLIC_INTERFACE

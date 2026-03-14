@@ -19,12 +19,19 @@ import { ParentInputParameterMappingTab } from "./asset-details/tabs/ParentInput
 import { ReportingAttributesMappingTab } from "./asset-details/tabs/ReportingAttributesMappingTab";
 import { StatusLogTab } from "./asset-details/tabs/StatusLogTab";
 import { AdditionalAssetIdsTab } from "./asset-details/tabs/AdditionalAssetIdsTab";
+import { EfSourceMappingTab } from "./asset-details/tabs/EfSourceMappingTab";
+import { ThroughputSetupTab } from "./asset-details/tabs/ThroughputSetupTab";
+import { DataInputTab } from "./asset-details/tabs/DataInputTab";
+import { InputParameterSelectionProvider } from "./asset-details/InputParameterSelectionContext";
 
 type TabId =
   | "asset-details"
   | "asset-properties"
   | "control-devices"
   | "input-parameters"
+  | "ef-source-mapping"
+  | "throughput-setup"
+  | "data-input"
   | "parent-input-mapping"
   | "reporting-attributes"
   | "status-log"
@@ -92,7 +99,15 @@ export function AssetDetailsPage() {
       { id: "asset-details", label: "Asset Details" },
       { id: "asset-properties", label: "Asset Properties" },
       { id: "control-devices", label: "Associated Control Devices" },
+
+      // Primary selector per BRD step 04.01
       { id: "input-parameters", label: "Associated Input Parameters" },
+
+      // Dependent modules (inputParameterId scoped)
+      { id: "ef-source-mapping", label: "EF Source Mapping" },
+      { id: "throughput-setup", label: "Throughput Setup" },
+      { id: "data-input", label: "Data Input" },
+
       { id: "parent-input-mapping", label: "Parent Input Parameter Mapping" },
       { id: "reporting-attributes", label: "Reporting Attributes Mapping" },
       { id: "status-log", label: "Status Log" },
@@ -136,14 +151,21 @@ export function AssetDetailsPage() {
 
           <Tabs tabs={tabs} activeId={tab} onChange={(id) => setTab(id as TabId)} />
 
-          {tab === "asset-details" ? <AssetDetailsOverviewTab asset={asset} caps={caps} /> : null}
-          {tab === "asset-properties" ? <AssetPropertiesTab asset={asset} caps={caps} /> : null}
-          {tab === "control-devices" ? <ControlDevicesTab asset={asset} caps={caps} /> : null}
-          {tab === "input-parameters" ? <InputParametersTab asset={asset} caps={caps} /> : null}
-          {tab === "parent-input-mapping" ? <ParentInputParameterMappingTab asset={asset} caps={caps} /> : null}
-          {tab === "reporting-attributes" ? <ReportingAttributesMappingTab asset={asset} caps={caps} /> : null}
-          {tab === "status-log" ? <StatusLogTab asset={asset} caps={caps} /> : null}
-          {tab === "additional-ids" ? <AdditionalAssetIdsTab asset={asset} caps={caps} /> : null}
+          <InputParameterSelectionProvider>
+            {tab === "asset-details" ? <AssetDetailsOverviewTab asset={asset} caps={caps} /> : null}
+            {tab === "asset-properties" ? <AssetPropertiesTab asset={asset} caps={caps} /> : null}
+            {tab === "control-devices" ? <ControlDevicesTab asset={asset} caps={caps} /> : null}
+
+            {tab === "input-parameters" ? <InputParametersTab asset={asset} caps={caps} /> : null}
+            {tab === "ef-source-mapping" ? <EfSourceMappingTab asset={asset} caps={caps} /> : null}
+            {tab === "throughput-setup" ? <ThroughputSetupTab asset={asset} caps={caps} /> : null}
+            {tab === "data-input" ? <DataInputTab asset={asset} caps={caps} /> : null}
+
+            {tab === "parent-input-mapping" ? <ParentInputParameterMappingTab asset={asset} caps={caps} /> : null}
+            {tab === "reporting-attributes" ? <ReportingAttributesMappingTab asset={asset} caps={caps} /> : null}
+            {tab === "status-log" ? <StatusLogTab asset={asset} caps={caps} /> : null}
+            {tab === "additional-ids" ? <AdditionalAssetIdsTab asset={asset} caps={caps} /> : null}
+          </InputParameterSelectionProvider>
         </>
       ) : (
         <div className="text-sm text-slate-600 dark:text-slate-300">Asset not found.</div>
