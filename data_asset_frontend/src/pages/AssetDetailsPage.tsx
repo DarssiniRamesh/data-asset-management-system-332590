@@ -34,7 +34,15 @@ export function AssetDetailsPage() {
   useEffect(() => {
     let mounted = true;
     async function load(): Promise<void> {
-      if (!assetId) return;
+      // Defensive: avoid calling GET /api/assets/undefined and avoid leaving the UI in a perpetual loading state.
+      if (!assetId || assetId === "undefined" || assetId === "null") {
+        if (mounted) {
+          setAsset(null);
+          setLoadingAsset(false);
+        }
+        return;
+      }
+
       setLoadingAsset(true);
       try {
         const a = await getAsset(assetId);
