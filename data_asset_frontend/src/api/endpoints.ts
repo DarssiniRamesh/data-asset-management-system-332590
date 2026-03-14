@@ -12,60 +12,86 @@ import type {
   UpdateAssetRequest,
 } from "./types";
 
+/**
+ * Backend responses may be either camelCase (typical JSON) or PascalCase (some .NET serializers / legacy DTOs).
+ * We support both to keep the UI resilient across environments.
+ */
 type BackendAssetDto = {
-  AssetId: number;
-  SiteId: string;
-  AssetGroup: string;
-  ProcessGroup: string;
+  // camelCase (per OpenAPI)
+  assetId?: number;
+  siteId?: string;
+  assetGroup?: string;
+  processGroup?: string;
+  processGroupOtherText?: string | null;
+  assetName?: string;
+  permitEuId?: string;
+  globalUniqueAssetId?: string;
+  assetDescription?: string | null;
+  stationaryFlag?: boolean | null;
+  parentPseudoAssetId?: number | null;
+  createdBy?: string;
+  createdAt?: string;
+  modifiedBy?: string;
+  modifiedAt?: string;
+  isDeleted?: boolean;
+  correlationId?: string;
+
+  // PascalCase (legacy)
+  AssetId?: number;
+  SiteId?: string;
+  AssetGroup?: string;
+  ProcessGroup?: string;
   ProcessGroupOtherText?: string | null;
-  AssetName: string;
-  PermitEuId: string;
-  GlobalUniqueAssetId: string;
+  AssetName?: string;
+  PermitEuId?: string;
+  GlobalUniqueAssetId?: string;
   AssetDescription?: string | null;
   StationaryFlag?: boolean | null;
   ParentPseudoAssetId?: number | null;
-
-  // audit/trace
-  CreatedBy: string;
-  CreatedAt: string;
-  ModifiedBy: string;
-  ModifiedAt: string;
-  IsDeleted: boolean;
-  CorrelationId: string;
+  CreatedBy?: string;
+  CreatedAt?: string;
+  ModifiedBy?: string;
+  ModifiedAt?: string;
+  IsDeleted?: boolean;
+  CorrelationId?: string;
 };
 
 /**
- * Convert backend AssetDto (PascalCase) into the UI's canonical camelCase AssetDto.
- * This fixes create/list/get flows where the UI previously saw missing assetId.
+ * Convert backend AssetDto (camelCase or PascalCase) into the UI's canonical camelCase AssetDto.
  */
 function mapAssetFromBackend(a: BackendAssetDto): AssetDto {
+  const assetIdNum = a.assetId ?? a.AssetId;
+  const parentPseudoNum = a.parentPseudoAssetId ?? a.ParentPseudoAssetId;
+
   return {
-    assetId: String(a.AssetId),
-    siteId: a.SiteId,
-    assetGroup: a.AssetGroup,
-    processGroup: a.ProcessGroup,
-    processGroupOtherText: a.ProcessGroupOtherText ?? null,
+    assetId: assetIdNum !== undefined && assetIdNum !== null ? String(assetIdNum) : "",
 
-    assetName: a.AssetName,
-    permitEuId: a.PermitEuId,
-    globalUniqueAssetId: a.GlobalUniqueAssetId,
+    siteId: (a.siteId ?? a.SiteId ?? "") as string,
+    assetGroup: (a.assetGroup ?? a.AssetGroup ?? "") as string,
+    processGroup: (a.processGroup ?? a.ProcessGroup ?? "") as string,
+    processGroupOtherText: a.processGroupOtherText ?? a.ProcessGroupOtherText ?? null,
 
-    assetDescription: a.AssetDescription ?? null,
-    stationaryFlag: a.StationaryFlag ?? null,
+    assetName: (a.assetName ?? a.AssetName ?? "") as string,
+    permitEuId: (a.permitEuId ?? a.PermitEuId ?? "") as string,
+    globalUniqueAssetId: (a.globalUniqueAssetId ?? a.GlobalUniqueAssetId ?? "") as string,
+
+    assetDescription: a.assetDescription ?? a.AssetDescription ?? null,
+    stationaryFlag: a.stationaryFlag ?? a.StationaryFlag ?? null,
 
     // Backend uses null/non-null to indicate presence, but requires an explicit flag on requests.
-    requiresParentPseudo: Boolean(a.ParentPseudoAssetId),
-    parentPseudoAssetId: a.ParentPseudoAssetId !== null && a.ParentPseudoAssetId !== undefined ? String(a.ParentPseudoAssetId) : null,
+    requiresParentPseudo: Boolean(parentPseudoNum),
+    parentPseudoAssetId:
+      parentPseudoNum !== null && parentPseudoNum !== undefined ? String(parentPseudoNum) : null,
 
-    createdBy: a.CreatedBy,
-    modifiedBy: a.ModifiedBy,
+    createdBy: a.createdBy ?? a.CreatedBy ?? null,
+    modifiedBy: a.modifiedBy ?? a.ModifiedBy ?? null,
 
-    correlationId: a.CorrelationId,
+    correlationId: (a.correlationId ?? a.CorrelationId ?? "") as string,
 
-    createdAt: a.CreatedAt,
-    modifiedAt: a.ModifiedAt,
+    createdAt: a.createdAt ?? a.CreatedAt ?? null,
+    modifiedAt: a.modifiedAt ?? a.ModifiedAt ?? null,
 
-    isDeleted: a.IsDeleted,
+    isDeleted: a.isDeleted ?? a.IsDeleted ?? false,
   };
 }
 
