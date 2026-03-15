@@ -1429,27 +1429,47 @@ export async function queryControlDeviceMasters(params?: {
   });
 
   const mapped = Array.isArray(rows)
-    ? rows.map((r) => ({
-        // Accept camelCase, PascalCase, and snake_case (DB schema) shapes.
-        // Required for environments that expose DB-shaped JSON or different serializers.
-        controlDeviceId: pickId(r, "controlDeviceId", "ControlDeviceId", "control_device_id", "controlDeviceID"),
-        siteId: (r["siteId"] ?? r["SiteId"] ?? r["site_id"] ?? null) as string | null,
-        deviceKey: (r["deviceKey"] ??
-          r["DeviceKey"] ??
-          r["device_key"] ??
-          // legacy fallbacks (older UI/backends)
-          r["deviceTag"] ??
-          r["DeviceTag"] ??
-          null) as string | null,
-        displayLabel: (r["displayLabel"] ??
-          r["DisplayLabel"] ??
-          r["display_label"] ??
-          // legacy fallbacks
-          r["deviceName"] ??
-          r["DeviceName"] ??
-          null) as string | null,
-        isActive: (r["isActive"] ?? r["IsActive"] ?? r["is_active"] ?? true) as boolean,
-      }))
+    ? rows
+        .map((r) => {
+          // Accept camelCase, PascalCase, and snake_case (DB schema) shapes.
+          // Required for environments that expose DB-shaped JSON or different serializers.
+          //
+          // NOTE:
+          // The dropdown requires that:
+          //  - every option has a non-empty string value
+          //  - the option value matches the mapping row.controlDeviceId (stringified) for edit/persist
+          // So we aggressively normalize IDs here.
+          const controlDeviceId = pickId(
+            r,
+            "controlDeviceId",
+            "ControlDeviceId",
+            "control_device_id",
+            "controlDeviceID",
+            "ControlDeviceID",
+          ).trim();
+
+          return {
+            controlDeviceId,
+            siteId: (r["siteId"] ?? r["SiteId"] ?? r["site_id"] ?? null) as string | null,
+            deviceKey: (r["deviceKey"] ??
+              r["DeviceKey"] ??
+              r["device_key"] ??
+              // legacy fallbacks (older UI/backends)
+              r["deviceTag"] ??
+              r["DeviceTag"] ??
+              null) as string | null,
+            displayLabel: (r["displayLabel"] ??
+              r["DisplayLabel"] ??
+              r["display_label"] ??
+              // legacy fallbacks
+              r["deviceName"] ??
+              r["DeviceName"] ??
+              null) as string | null,
+            isActive: (r["isActive"] ?? r["IsActive"] ?? r["is_active"] ?? true) as boolean,
+          };
+        })
+        // Drop rows that don't have a usable id; prevents blank dropdown items and value mismatch issues.
+        .filter((r) => Boolean(r.controlDeviceId))
     : [];
 
   logger.debug("ControlDeviceMastersQuery:ok", {
