@@ -13,6 +13,7 @@ import { useAuth } from "../../../state/AuthContext";
 import { useToasts } from "../../../state/ToastContext";
 import type { AssetDetailsTabProps } from "../AssetDetailsTab";
 import { TabStatePanel } from "../TabStatePanel";
+import { AuthRequiredPanel, shouldShowAuthRequired } from "../AuthRequiredPanel";
 import { CrudActionBar } from "../crud/CrudActionBar";
 import { extractErrors, requireInt, validateRequiredStrings } from "../crud/crudFormUtils";
 
@@ -205,6 +206,10 @@ export function StatusLogTab({ asset, caps }: AssetDetailsTabProps) {
     ],
     [caps.canEdit, statusCodeIndex],
   );
+
+  if (shouldShowAuthRequired(error)) {
+    return <AuthRequiredPanel title="Status Log" />;
+  }
 
   return (
     <div className="space-y-4">

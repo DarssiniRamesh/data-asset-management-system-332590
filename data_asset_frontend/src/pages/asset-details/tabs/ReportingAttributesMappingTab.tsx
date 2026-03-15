@@ -13,6 +13,7 @@ import { useAuth } from "../../../state/AuthContext";
 import { useToasts } from "../../../state/ToastContext";
 import type { AssetDetailsTabProps } from "../AssetDetailsTab";
 import { TabStatePanel } from "../TabStatePanel";
+import { AuthRequiredPanel, shouldShowAuthRequired } from "../AuthRequiredPanel";
 import { CrudActionBar } from "../crud/CrudActionBar";
 import { extractErrors, requireInt, validateRequiredStrings } from "../crud/crudFormUtils";
 
@@ -217,6 +218,10 @@ export function ReportingAttributesMappingTab({ asset, caps }: AssetDetailsTabPr
     ],
     [caps.canEdit, programIndex],
   );
+
+  if (shouldShowAuthRequired(error)) {
+    return <AuthRequiredPanel title="Reporting Attributes Mapping" />;
+  }
 
   return (
     <div className="space-y-4">

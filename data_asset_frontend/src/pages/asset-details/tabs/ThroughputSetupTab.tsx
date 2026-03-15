@@ -24,6 +24,7 @@ import { useToasts } from "../../../state/ToastContext";
 import type { AssetDetailsTabProps } from "../AssetDetailsTab";
 import { useInputParameterSelection } from "../InputParameterSelectionContext";
 import { TabStatePanel } from "../TabStatePanel";
+import { AuthRequiredPanel, shouldShowAuthRequired } from "../AuthRequiredPanel";
 import { CrudActionBar } from "../crud/CrudActionBar";
 import { extractErrors, requireInt, validateRequiredStrings } from "../crud/crudFormUtils";
 
@@ -402,6 +403,10 @@ export function ThroughputSetupTab({ asset, caps }: AssetDetailsTabProps) {
         </div>
       </div>
     );
+  }
+
+  if (shouldShowAuthRequired(error)) {
+    return <AuthRequiredPanel title="Throughput Setup" />;
   }
 
   return (

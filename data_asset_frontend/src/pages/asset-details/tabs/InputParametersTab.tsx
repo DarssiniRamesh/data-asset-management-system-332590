@@ -16,6 +16,7 @@ import { useToasts } from "../../../state/ToastContext";
 import type { AssetDetailsTabProps } from "../AssetDetailsTab";
 import { useInputParameterSelection } from "../InputParameterSelectionContext";
 import { TabStatePanel } from "../TabStatePanel";
+import { AuthRequiredPanel, shouldShowAuthRequired } from "../AuthRequiredPanel";
 import { CrudActionBar } from "../crud/CrudActionBar";
 import { extractErrors, requireInt, validateRequiredStrings } from "../crud/crudFormUtils";
 
@@ -271,6 +272,10 @@ export function InputParametersTab({ asset, caps }: AssetDetailsTabProps) {
     ],
     [caps.canEdit, selectedInputParameterId, setSelectedInputParameterId, uomIndex],
   );
+
+  if (shouldShowAuthRequired(error)) {
+    return <AuthRequiredPanel title="Associated Input Parameters" />;
+  }
 
   return (
     <div className="space-y-4">

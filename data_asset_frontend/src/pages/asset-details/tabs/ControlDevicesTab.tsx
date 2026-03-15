@@ -14,6 +14,7 @@ import { useAuth } from "../../../state/AuthContext";
 import { useToasts } from "../../../state/ToastContext";
 import type { AssetDetailsTabProps } from "../AssetDetailsTab";
 import { TabStatePanel } from "../TabStatePanel";
+import { AuthRequiredPanel, shouldShowAuthRequired } from "../AuthRequiredPanel";
 import { CrudActionBar } from "../crud/CrudActionBar";
 import { extractErrors, requireInt } from "../crud/crudFormUtils";
 
@@ -193,6 +194,10 @@ export function ControlDevicesTab({ asset, caps }: AssetDetailsTabProps) {
     ],
     [caps.canEdit, deviceIndex],
   );
+
+  if (shouldShowAuthRequired(error)) {
+    return <AuthRequiredPanel title="Associated Control Devices" />;
+  }
 
   return (
     <div className="space-y-4">
