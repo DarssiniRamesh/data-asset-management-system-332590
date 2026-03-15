@@ -66,7 +66,10 @@ export function ControlDevicesTab({ asset, caps }: AssetDetailsTabProps) {
       try {
         const [mappings, devices] = await Promise.all([
           listControlDeviceMappings(asset.assetId),
-          queryControlDeviceMasters({ siteId: asset.siteId, activeOnly: true, limit: 1000 }),
+          // Do not hard-filter to ActiveOnly=true here; some environments have master rows present but not flagged active yet,
+          // which causes an empty dropdown and blocks mapping creation.
+          // The backend still returns `isActive` so the UI can display/validate if needed.
+          queryControlDeviceMasters({ siteId: asset.siteId, limit: 1000 }),
         ]);
 
         if (!mounted) return;
@@ -276,10 +279,14 @@ export function ControlDevicesTab({ asset, caps }: AssetDetailsTabProps) {
             label="Control Device"
             value={form.controlDeviceId}
             onChange={(v) => setForm((s) => ({ ...s, controlDeviceId: v }))}
-            options={masters.map((d) => ({
-              value: d.controlDeviceId,
-              label: (d.displayLabel || d.deviceKey || d.controlDeviceId) as string,
-            }))}
+            options={masters.map((d) => {
+              const base = (d.displayLabel || d.deviceKey || d.controlDeviceId) as string;
+              const suffix = d.isActive === false ? " (inactive)" : "";
+              return {
+                value: d.controlDeviceId,
+                label: `${base}${suffix}`,
+              };
+            })}
             error={fieldErrors.controlDeviceId}
             placeholder="Select…"
             helpText={
