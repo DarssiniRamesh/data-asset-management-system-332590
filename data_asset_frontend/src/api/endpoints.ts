@@ -1302,15 +1302,33 @@ export async function updateDataInputValue(
 type BackendMasterBase = Record<string, unknown>;
 
 // Helpers map potentially PascalCase IDs as strings
-function pickId(
-  obj: BackendMasterBase,
-  ...keys: string[]
-): string {
+function pickId(obj: BackendMasterBase, ...keys: string[]): string {
   for (const k of keys) {
     const v = obj[k];
     if (v !== undefined && v !== null) return String(v);
   }
   return "";
+}
+
+/**
+ * Extract a list payload from API responses that may be either:
+ *  - a raw JSON array (canonical, per OpenAPI)
+ *  - an object wrapper containing the array under a common key (legacy/proxy patterns)
+ *
+ * This is intentionally small and reusable to avoid one-off patches per endpoint.
+ */
+function unwrapListResponse(v: unknown): unknown[] {
+  if (Array.isArray(v)) return v;
+  if (!v || typeof v !== "object") return [];
+
+  const obj = v as Record<string, unknown>;
+  const candidates = [obj.items, obj.data, obj.value, obj.results];
+
+  for (const c of candidates) {
+    if (Array.isArray(c)) return c;
+  }
+
+  return [];
 }
 
 // PUBLIC_INTERFACE
@@ -1427,66 +1445,65 @@ export async function queryControlDeviceMasters(params?: {
     path,
   });
 
-  const rows = await apiRequest<BackendMasterBase[]>({
+  const raw = await apiRequest<unknown>({
     method: "GET",
     path,
   });
 
-  const mapped = Array.isArray(rows)
-    ? rows
-        .map((r) => {
-          // Accept camelCase, PascalCase, and snake_case (DB schema) shapes.
-          // Some dev seeds/legacy serializers may return different casing.
-          // Some environments may return the primary key as `id` (generic) rather than `controlDeviceId`.
-          // Treat these as equivalent to keep the UI robust across serializers/seeds.
-          const controlDeviceId = pickId(
-            r,
-            "controlDeviceId",
-            "ControlDeviceId",
-            "control_device_id",
-            "controlDeviceID",
-            "ControlDeviceID",
-            "id",
-            "Id",
-          ).trim();
+  // Some environments/proxies wrap arrays, even when the OpenAPI advertises a top-level array.
+  const rows = unwrapListResponse(raw) as BackendMasterBase[];
 
-          const siteId = (r["siteId"] ?? r["SiteId"] ?? r["site_id"] ?? null) as
-            | string
-            | null;
+  const mapped = rows
+    .map((r) => {
+      // Accept camelCase, PascalCase, and snake_case (DB schema) shapes.
+      // Some dev seeds/legacy serializers may return different casing.
+      // Some environments may return the primary key as `id` (generic) rather than `controlDeviceId`.
+      // Treat these as equivalent to keep the UI robust across serializers/seeds.
+      const controlDeviceId = pickId(
+        r,
+        "controlDeviceId",
+        "ControlDeviceId",
+        "control_device_id",
+        "controlDeviceID",
+        "ControlDeviceID",
+        "id",
+        "Id",
+      ).trim();
 
-          const deviceKey = (r["deviceKey"] ??
-            r["DeviceKey"] ??
-            r["device_key"] ??
-            // legacy fallbacks
-            r["deviceTag"] ??
-            r["DeviceTag"] ??
-            // other common variants
-            r["tag"] ??
-            r["Tag"] ??
-            null) as string | null;
+      const siteId = (r["siteId"] ?? r["SiteId"] ?? r["site_id"] ?? null) as string | null;
 
-          const displayLabel = (r["displayLabel"] ??
-            r["DisplayLabel"] ??
-            r["display_label"] ??
-            // legacy fallbacks
-            r["deviceName"] ??
-            r["DeviceName"] ??
-            // other common variants
-            r["name"] ??
-            r["Name"] ??
-            null) as string | null;
+      const deviceKey = (r["deviceKey"] ??
+        r["DeviceKey"] ??
+        r["device_key"] ??
+        // legacy fallbacks
+        r["deviceTag"] ??
+        r["DeviceTag"] ??
+        // other common variants
+        r["tag"] ??
+        r["Tag"] ??
+        null) as string | null;
 
-          return {
-            controlDeviceId,
-            siteId,
-            deviceKey,
-            displayLabel,
-            isActive: (r["isActive"] ?? r["IsActive"] ?? r["is_active"] ?? true) as boolean,
-          };
-        })
-        // Drop rows without usable IDs; prevents blank dropdown items and value mismatch issues.
-        .filter((r) => Boolean(r.controlDeviceId))
-    : [];
+      const displayLabel = (r["displayLabel"] ??
+        r["DisplayLabel"] ??
+        r["display_label"] ??
+        // legacy fallbacks
+        r["deviceName"] ??
+        r["DeviceName"] ??
+        // other common variants
+        r["name"] ??
+        r["Name"] ??
+        null) as string | null;
+
+      return {
+        controlDeviceId,
+        siteId,
+        deviceKey,
+        displayLabel,
+        isActive: (r["isActive"] ?? r["IsActive"] ?? r["is_active"] ?? true) as boolean,
+      };
+    })
+    // Drop rows without usable IDs; prevents blank dropdown items and value mismatch issues.
+    .filter((r) => Boolean(r.controlDeviceId));
 
   logger.debug("ControlDeviceMastersQuery:ok", {
     count: mapped.length,
