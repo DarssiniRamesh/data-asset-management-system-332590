@@ -26,6 +26,11 @@ export type NavItem = {
    * If omitted, the item is visible to all authenticated users (subject to route guards).
    */
   requiredAction?: "read" | "create" | "edit" | "copy" | "delete";
+  /**
+   * Optional role guard for UI visibility.
+   * This is a UX feature only; backend authorization remains the security boundary.
+   */
+  requiredRole?: Role;
 };
 
 const ALL_NAV_ITEMS: NavItem[] = [
@@ -33,12 +38,12 @@ const ALL_NAV_ITEMS: NavItem[] = [
   { to: "/app/assets", label: "Assets", icon: FaTable as unknown as NavIcon, requiredAction: "read" },
   { to: "/app/assets/create", label: "Create", icon: FaPlusCircle as unknown as NavIcon, requiredAction: "create" },
 
-  // Master Data admin
-  { to: "/app/masters/uoms", label: "Masters: UOMs", icon: FaCogs as unknown as NavIcon, requiredAction: "read" },
-  { to: "/app/masters/control-devices", label: "Masters: Control Devices", icon: FaCogs as unknown as NavIcon, requiredAction: "read" },
-  { to: "/app/masters/equations", label: "Masters: Equations", icon: FaCogs as unknown as NavIcon, requiredAction: "read" },
-  { to: "/app/masters/status-codes", label: "Masters: Status Codes", icon: FaCogs as unknown as NavIcon, requiredAction: "read" },
-  { to: "/app/masters/reporting-programs", label: "Masters: Reporting Programs", icon: FaCogs as unknown as NavIcon, requiredAction: "read" },
+  // Master Data admin (Admin-only visibility)
+  { to: "/app/masters/uoms", label: "Masters: UOMs", icon: FaCogs as unknown as NavIcon, requiredAction: "read", requiredRole: "Admin" },
+  { to: "/app/masters/control-devices", label: "Masters: Control Devices", icon: FaCogs as unknown as NavIcon, requiredAction: "read", requiredRole: "Admin" },
+  { to: "/app/masters/equations", label: "Masters: Equations", icon: FaCogs as unknown as NavIcon, requiredAction: "read", requiredRole: "Admin" },
+  { to: "/app/masters/status-codes", label: "Masters: Status Codes", icon: FaCogs as unknown as NavIcon, requiredAction: "read", requiredRole: "Admin" },
+  { to: "/app/masters/reporting-programs", label: "Masters: Reporting Programs", icon: FaCogs as unknown as NavIcon, requiredAction: "read", requiredRole: "Admin" },
 
   // BRD §4 modules
   { to: "/app/section4/site-profile", label: "Site Profile", icon: FaClipboardList as unknown as NavIcon, requiredAction: "read" },
@@ -60,6 +65,7 @@ export function getNavItemsForRole(role: Role | null | undefined): NavItem[] {
    * - Visibility is a UX feature; backend remains the security boundary.
    */
   return ALL_NAV_ITEMS.filter((item) => {
+    if (item.requiredRole && role !== item.requiredRole) return false;
     if (!item.requiredAction) return true;
     return can(role, item.requiredAction);
   });
