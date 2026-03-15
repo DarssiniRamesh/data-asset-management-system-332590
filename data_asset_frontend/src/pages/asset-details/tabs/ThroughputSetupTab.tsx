@@ -17,6 +17,7 @@ import type {
 } from "../../../api/types";
 import { DataTable, type Column } from "../../../components/DataTable";
 import { FormInput } from "../../../components/FormInput";
+import { FormSelect } from "../../../components/FormSelect";
 import { Modal } from "../../../components/Modal";
 import { useAuth } from "../../../state/AuthContext";
 import { useToasts } from "../../../state/ToastContext";
@@ -473,24 +474,22 @@ export function ThroughputSetupTab({ asset, caps }: AssetDetailsTabProps) {
         ) : null}
 
         <div className="space-y-3">
-          <label className="block">
-            <div className="label">Equation Master</div>
-            <select
-              className="input mt-1"
-              value={eqForm.equationMasterId}
-              onChange={(e) => setEqForm((s) => ({ ...s, equationMasterId: e.target.value }))}
-            >
-              <option value="">Select…</option>
-              {equations.map((e) => (
-                <option key={e.equationMasterId} value={e.equationMasterId}>
-                  {e.equationName || e.equationMasterId}
-                </option>
-              ))}
-            </select>
-            {eqFieldErrors.equationMasterId ? (
-              <div className="mt-1 text-sm text-red-600">{eqFieldErrors.equationMasterId}</div>
-            ) : null}
-          </label>
+          <FormSelect
+            label="Equation Master"
+            value={eqForm.equationMasterId}
+            onChange={(v) => setEqForm((s) => ({ ...s, equationMasterId: v }))}
+            options={equations.map((e) => ({
+              value: e.equationMasterId,
+              label: (e.equationName || e.equationMasterId) as string,
+            }))}
+            error={eqFieldErrors.equationMasterId}
+            placeholder="Select…"
+            helpText={
+              equations.length === 0
+                ? "No active equation masters were returned. Check master data setup."
+                : null
+            }
+          />
 
           <FormInput
             label="Equation Text (optional)"
@@ -560,21 +559,21 @@ export function ThroughputSetupTab({ asset, caps }: AssetDetailsTabProps) {
                   error={scalarFieldErrors.scalarValue}
                 />
 
-                <label className="block">
-                  <div className="label">UOM (optional)</div>
-                  <select
-                    className="input mt-1"
-                    value={scalarForm.uomId}
-                    onChange={(e) => setScalarForm((s) => ({ ...s, uomId: e.target.value }))}
-                  >
-                    <option value="">—</option>
-                    {uoms.map((u) => (
-                      <option key={u.uomId} value={u.uomId}>
-                        {u.uomCode ? `${u.uomCode} — ` : ""}{u.uomName || u.uomId}
-                      </option>
-                    ))}
-                  </select>
-                </label>
+                <FormSelect
+                  label="UOM (optional)"
+                  value={scalarForm.uomId}
+                  onChange={(v) => setScalarForm((s) => ({ ...s, uomId: v }))}
+                  options={uoms.map((u) => ({
+                    value: u.uomId,
+                    label: `${u.uomCode ? `${u.uomCode} — ` : ""}${(u.uomName || u.uomId) as string}`,
+                  }))}
+                  placeholder="—"
+                  helpText={
+                    uoms.length === 0
+                      ? "No active UOM masters were returned. Check master data setup."
+                      : null
+                  }
+                />
 
                 <label className="flex items-center gap-2 text-sm">
                   <input type="checkbox" checked={scalarForm.isActive} onChange={(e) => setScalarForm((s) => ({ ...s, isActive: e.target.checked }))} />

@@ -8,6 +8,7 @@ import {
 import type { ControlDeviceMappingDto, ControlDeviceMasterDto } from "../../../api/types";
 import { DataTable, type Column } from "../../../components/DataTable";
 import { FormInput } from "../../../components/FormInput";
+import { FormSelect } from "../../../components/FormSelect";
 import { Modal } from "../../../components/Modal";
 import { useAuth } from "../../../state/AuthContext";
 import { useToasts } from "../../../state/ToastContext";
@@ -262,22 +263,22 @@ export function ControlDevicesTab({ asset, caps }: AssetDetailsTabProps) {
         ) : null}
 
         <div className="space-y-3">
-          <label className="block">
-            <div className="label">Control Device</div>
-            <select
-              className="input mt-1"
-              value={form.controlDeviceId}
-              onChange={(e) => setForm((s) => ({ ...s, controlDeviceId: e.target.value }))}
-            >
-              <option value="">Select…</option>
-              {masters.map((d) => (
-                <option key={d.controlDeviceId} value={d.controlDeviceId}>
-                  {(d.deviceName || d.deviceTag || d.controlDeviceId) as string}
-                </option>
-              ))}
-            </select>
-            {fieldErrors.controlDeviceId ? <div className="mt-1 text-sm text-red-600">{fieldErrors.controlDeviceId}</div> : null}
-          </label>
+          <FormSelect
+            label="Control Device"
+            value={form.controlDeviceId}
+            onChange={(v) => setForm((s) => ({ ...s, controlDeviceId: v }))}
+            options={masters.map((d) => ({
+              value: d.controlDeviceId,
+              label: (d.deviceName || d.deviceTag || d.controlDeviceId) as string,
+            }))}
+            error={fieldErrors.controlDeviceId}
+            placeholder="Select…"
+            helpText={
+              masters.length === 0
+                ? "No active control devices were returned for this site. Check master data setup."
+                : null
+            }
+          />
 
           <FormInput
             label="Control Device Tag (optional)"
@@ -287,7 +288,11 @@ export function ControlDevicesTab({ asset, caps }: AssetDetailsTabProps) {
           />
 
           <label className="flex items-center gap-2 text-sm">
-            <input type="checkbox" checked={form.isActive} onChange={(e) => setForm((s) => ({ ...s, isActive: e.target.checked }))} />
+            <input
+              type="checkbox"
+              checked={form.isActive}
+              onChange={(e) => setForm((s) => ({ ...s, isActive: e.target.checked }))}
+            />
             Active
           </label>
         </div>

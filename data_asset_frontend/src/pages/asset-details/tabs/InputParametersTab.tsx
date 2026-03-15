@@ -6,62 +6,56 @@ import {
   queryUomMasters,
   updateInputParameter,
 } from "../../../api/endpoints";
-import type {
-  CreateInputParameterRequest,
-  InputParameterDto,
-  ReportingProgramMasterDto,
-  UomMasterDto,
-} from "../../../api/types";
+import type { InputParameterDto, ReportingProgramMasterDto, UomMasterDto } from "../../../api/types";
 import { DataTable, type Column } from "../../../components/DataTable";
 import { FormInput } from "../../../components/FormInput";
-import { LoaderSpinner } from "../../../components/LoaderSpinner";
+import { FormSelect } from "../../../components/FormSelect";
 import { Modal } from "../../../components/Modal";
-import { roleLabel } from "../../../lib/rbac";
 import { useAuth } from "../../../state/AuthContext";
 import { useToasts } from "../../../state/ToastContext";
 import type { AssetDetailsTabProps } from "../AssetDetailsTab";
 import { useInputParameterSelection } from "../InputParameterSelectionContext";
+import { TabStatePanel } from "../TabStatePanel";
 import { CrudActionBar } from "../crud/CrudActionBar";
 import { extractErrors, requireInt, validateRequiredStrings } from "../crud/crudFormUtils";
 
 type Row = InputParameterDto;
 
-function toSelectOptions<T extends { isActive?: boolean }>(
-  rows: T[],
-): T[] {
-  return rows.filter((r) => (r.isActive ?? true) === true);
+function buildUomIndex(masters: UomMasterDto[]): Map<string, UomMasterDto> {
+  const m = new Map<string, UomMasterDto>();
+  for (const u of masters) m.set(u.uomId, u);
+  return m;
+}
+
+function buildProgIndex(masters: ReportingProgramMasterDto[]): Map<string, ReportingProgramMasterDto> {
+  const m = new Map<string, ReportingProgramMasterDto>();
+  for (const p of masters) m.set(p.reportingProgramId, p);
+  return m;
 }
 
 // PUBLIC_INTERFACE
 export function InputParametersTab({ asset, caps }: AssetDetailsTabProps) {
-  /** BRD step 04.01 + CRUD
-   * Purpose:
-   *  - Canonical selector for current input parameter (drives EF/Throughput/Data Input tabs)
-   *  - Implements Create/Edit via modal dialogs (BRD-sequenced)
+  /** BRD: Associated Input Parameters
    * Backend:
-   *  - GET /api/assets/{assetId}/input-parameters
-   *  - POST /api/assets/{assetId}/input-parameters
+   *  - GET/POST /api/assets/{assetId}/input-parameters
    *  - PUT /api/assets/{assetId}/input-parameters/{inputParameterId}
-   * RBAC:
-   *  - Viewer: read-only (no create/edit)
-   * Validation:
-   *  - Client-side required: inputParameterName, createdBy/modifiedBy, correlationId
-   *  - Server-side: authoritative; show field errors + banner
+   * Masters:
+   *  - GET /api/masters/uoms
+   *  - GET /api/masters/reporting-programs
    */
-  const { pushToast } = useToasts();
   const { user } = useAuth();
-  const { selectedInputParameterId, setSelectedInputParameterId } =
-    useInputParameterSelection();
+  const { pushToast } = useToasts();
+  const { selectedInputParameterId, setSelectedInputParameterId } = useInputParameterSelection();
 
   const [rows, setRows] = useState<Row[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  // masters for dropdowns
   const [uoms, setUoms] = useState<UomMasterDto[]>([]);
   const [programs, setPrograms] = useState<ReportingProgramMasterDto[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<unknown>(null);
 
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState<Row | null>(null);
+  const [saving, setSaving] = useState(false);
 
   const [form, setForm] = useState({
     inputParameterName: "",
@@ -71,8 +65,6 @@ export function InputParametersTab({ asset, caps }: AssetDetailsTabProps) {
     dataEntryFrequency: "",
     isActive: true,
   });
-
-  const [saving, setSaving] = useState(false);
   const [banner, setBanner] = useState<{ title: string; message?: string } | null>(null);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 
@@ -80,14 +72,8 @@ export function InputParametersTab({ asset, caps }: AssetDetailsTabProps) {
     const list = await listInputParameters(asset.assetId);
     setRows(list);
 
-    if (list.length > 0) {
-      const selectedNorm = selectedInputParameterId ? String(selectedInputParameterId) : null;
-      const stillExists = selectedNorm ? list.some((r) => String(r.inputParameterId) === selectedNorm) : false;
-
-      if (!selectedNorm || !stillExists) {
-        setSelectedInputParameterId(list[0].inputParameterId);
-      }
-    } else {
+    // Keep selection valid if a row was deleted/changed elsewhere
+    if (selectedInputParameterId && !list.some((r) => r.inputParameterId === selectedInputParameterId)) {
       setSelectedInputParameterId(null);
     }
   }
@@ -97,33 +83,27 @@ export function InputParametersTab({ asset, caps }: AssetDetailsTabProps) {
 
     async function load(): Promise<void> {
       setLoading(true);
+      setError(null);
+
       try {
-        // Keep this effect stable: all referenced functions/values are in deps below.
-        const [u, p, list] = await Promise.all([
+        const [list, uomMasters, progMasters] = await Promise.all([
+          listInputParameters(asset.assetId),
           queryUomMasters({ activeOnly: true, limit: 1000 }),
           queryReportingProgramMasters({ activeOnly: true, limit: 1000 }),
-          listInputParameters(asset.assetId),
         ]);
 
         if (!mounted) return;
-
-        setUoms(u);
-        setPrograms(p);
         setRows(list);
+        setUoms(uomMasters);
+        setPrograms(progMasters);
 
-        if (list.length > 0) {
-          const selectedNorm = selectedInputParameterId ? String(selectedInputParameterId) : null;
-          const stillExists = selectedNorm ? list.some((r) => String(r.inputParameterId) === selectedNorm) : false;
-
-          if (!selectedNorm || !stillExists) {
-            setSelectedInputParameterId(list[0].inputParameterId);
-          }
-        } else {
-          setSelectedInputParameterId(null);
+        // Default selection: first row
+        if (!selectedInputParameterId && list.length > 0) {
+          setSelectedInputParameterId(list[0].inputParameterId);
         }
       } catch (e) {
-        const parsed = extractErrors(e);
-        pushToast({ type: "error", title: parsed.title, message: parsed.message });
+        if (!mounted) return;
+        setError(e);
       } finally {
         if (mounted) setLoading(false);
       }
@@ -133,17 +113,13 @@ export function InputParametersTab({ asset, caps }: AssetDetailsTabProps) {
     return () => {
       mounted = false;
     };
-  }, [
-    asset.assetId,
-    pushToast,
-    selectedInputParameterId,
-    setSelectedInputParameterId,
-  ]);
+  }, [asset.assetId, selectedInputParameterId, setSelectedInputParameterId]);
+
+  const uomIndex = useMemo(() => buildUomIndex(uoms), [uoms]);
+  const progIndex = useMemo(() => buildProgIndex(programs), [programs]);
 
   function openCreate(): void {
     setEditing(null);
-    setBanner(null);
-    setFieldErrors({});
     setForm({
       inputParameterName: "",
       uomId: "",
@@ -152,24 +128,23 @@ export function InputParametersTab({ asset, caps }: AssetDetailsTabProps) {
       dataEntryFrequency: "",
       isActive: true,
     });
+    setBanner(null);
+    setFieldErrors({});
     setModalOpen(true);
   }
 
-  function openEdit(row: Row): void {
-    setEditing(row);
+  function openEdit(r: Row): void {
+    setEditing(r);
+    setForm({
+      inputParameterName: r.inputParameterName ?? "",
+      uomId: r.uomId !== null && r.uomId !== undefined ? String(r.uomId) : "",
+      reportingProgramId: r.reportingProgramId !== null && r.reportingProgramId !== undefined ? String(r.reportingProgramId) : "",
+      inputType: r.inputType ?? "",
+      dataEntryFrequency: r.dataEntryFrequency ?? "",
+      isActive: r.isActive ?? true,
+    });
     setBanner(null);
     setFieldErrors({});
-    setForm({
-      inputParameterName: row.inputParameterName || "",
-      uomId: row.uomId !== null && row.uomId !== undefined ? String(row.uomId) : "",
-      reportingProgramId:
-        row.reportingProgramId !== null && row.reportingProgramId !== undefined
-          ? String(row.reportingProgramId)
-          : "",
-      inputType: row.inputType ?? "",
-      dataEntryFrequency: row.dataEntryFrequency ?? "",
-      isActive: row.isActive ?? true,
-    });
     setModalOpen(true);
   }
 
@@ -182,21 +157,24 @@ export function InputParametersTab({ asset, caps }: AssetDetailsTabProps) {
     setBanner(null);
     setFieldErrors({});
 
-    const requiredErrors = validateRequiredStrings({
+    const reqErrors = validateRequiredStrings({
       inputParameterName: form.inputParameterName,
     });
 
-    // validate number fields (optional)
-    const uom = form.uomId ? requireInt(form.uomId, "UOM") : { value: null as number | null };
-    const prog = form.reportingProgramId
-      ? requireInt(form.reportingProgramId, "Reporting Program")
-      : { value: null as number | null };
+    // These are optional in the backend API, but BRD expects dropdowns to be used when available.
+    // We'll validate type/frequency lightly to keep UX consistent without blocking legacy cases.
+    // (If BRD later marks them mandatory, make them required here.)
+    if (form.uomId) {
+      const u = requireInt(form.uomId, "UOM");
+      if (u.error) reqErrors.uomId = u.error;
+    }
+    if (form.reportingProgramId) {
+      const p = requireInt(form.reportingProgramId, "Reporting Program");
+      if (p.error) reqErrors.reportingProgramId = p.error;
+    }
 
-    if (uom.error) requiredErrors.uomId = uom.error;
-    if (prog.error) requiredErrors.reportingProgramId = prog.error;
-
-    if (Object.keys(requiredErrors).length > 0) {
-      setFieldErrors(requiredErrors);
+    if (Object.keys(reqErrors).length > 0) {
+      setFieldErrors(reqErrors);
       setBanner({ title: "Validation failed", message: "Please correct the highlighted fields." });
       return;
     }
@@ -204,112 +182,77 @@ export function InputParametersTab({ asset, caps }: AssetDetailsTabProps) {
     setSaving(true);
     try {
       const correlationId = crypto.randomUUID();
+      const uom = form.uomId ? requireInt(form.uomId, "UOM").value : null;
+      const prog = form.reportingProgramId ? requireInt(form.reportingProgramId, "Reporting Program").value : null;
 
       if (!editing) {
-        const req: CreateInputParameterRequest = {
+        const created = await createInputParameter(asset.assetId, {
           inputParameterName: form.inputParameterName.trim(),
-          uomId: uom.value,
-          reportingProgramId: prog.value,
+          uomId: uom,
+          reportingProgramId: prog,
           inputType: form.inputType.trim() ? form.inputType.trim() : null,
-          dataEntryFrequency: form.dataEntryFrequency.trim()
-            ? form.dataEntryFrequency.trim()
-            : null,
+          dataEntryFrequency: form.dataEntryFrequency.trim() ? form.dataEntryFrequency.trim() : null,
           isActive: form.isActive,
           createdBy: user.username,
           correlationId,
-        };
-        const created = await createInputParameter(asset.assetId, req);
+        });
         pushToast({ type: "success", title: "Input parameter created" });
         await reload();
         setSelectedInputParameterId(created.inputParameterId);
-        setModalOpen(false);
       } else {
-        const req = {
+        await updateInputParameter(asset.assetId, editing.inputParameterId, {
           inputParameterName: form.inputParameterName.trim(),
-          uomId: uom.value,
-          reportingProgramId: prog.value,
+          uomId: uom,
+          reportingProgramId: prog,
           inputType: form.inputType.trim() ? form.inputType.trim() : null,
-          dataEntryFrequency: form.dataEntryFrequency.trim()
-            ? form.dataEntryFrequency.trim()
-            : null,
+          dataEntryFrequency: form.dataEntryFrequency.trim() ? form.dataEntryFrequency.trim() : null,
           isActive: form.isActive,
           modifiedBy: user.username,
           correlationId,
-        };
-        await updateInputParameter(asset.assetId, editing.inputParameterId, req);
+        });
         pushToast({ type: "success", title: "Input parameter updated" });
         await reload();
-        setModalOpen(false);
       }
+
+      setModalOpen(false);
     } catch (e) {
-      const parsed = extractErrors(e);
-      setBanner({ title: parsed.title, message: parsed.message });
-      setFieldErrors(parsed.fieldErrors);
-      if (parsed.remediation) {
-        pushToast({ type: "error", title: parsed.title, message: parsed.remediation });
-      }
+      const ex = extractErrors(e);
+      setBanner({ title: ex.title, message: ex.message });
+      setFieldErrors(ex.fieldErrors);
     } finally {
       setSaving(false);
     }
   }
 
-  const activeUoms = useMemo(() => toSelectOptions(uoms), [uoms]);
-  const activePrograms = useMemo(() => toSelectOptions(programs), [programs]);
-
   const columns: Column<Row>[] = useMemo(
     () => [
-      {
-        key: "selected",
-        header: "",
-        widthClassName: "w-10",
-        render: (r) => {
-          const isSelected = r.inputParameterId === selectedInputParameterId;
-          return (
-            <div className="flex items-center justify-center">
-              <input
-                type="radio"
-                aria-label={`Select ${r.inputParameterName || r.inputParameterId}`}
-                checked={isSelected}
-                onChange={() => setSelectedInputParameterId(r.inputParameterId)}
-              />
-            </div>
-          );
-        },
-      },
       {
         key: "name",
         header: "Input Parameter",
         render: (r) => (
           <button
             type="button"
-            className="text-left font-semibold text-slate-900 hover:underline dark:text-slate-100"
+            className={`text-left ${r.inputParameterId === selectedInputParameterId ? "font-semibold" : ""}`}
             onClick={() => setSelectedInputParameterId(r.inputParameterId)}
           >
-            {r.inputParameterName || "(Unnamed)"}
-            <div className="muted text-xs font-normal">ID: {r.inputParameterId}</div>
+            <div className="text-sm">{r.inputParameterName || "-"}</div>
+            <div className="muted text-xs">
+              ID: <span className="font-mono">{r.inputParameterId}</span>
+              {r.inputParameterId === selectedInputParameterId ? " (selected)" : ""}
+            </div>
           </button>
         ),
       },
       {
         key: "uom",
         header: "UOM",
-        render: (r) => <span className="text-sm">{r.uomId ?? "-"}</span>,
+        render: (r) => {
+          const id = r.uomId !== null && r.uomId !== undefined ? String(r.uomId) : "";
+          const u = id ? uomIndex.get(id) : undefined;
+          return <span className="text-sm">{u?.uomCode ?? u?.uomName ?? (id || "-")}</span>;
+        },
       },
-      {
-        key: "active",
-        header: "Active",
-        render: (r) => (
-          <span
-            className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold ${
-              (r.isActive ?? true)
-                ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-200"
-                : "bg-slate-100 text-slate-600 dark:bg-slate-900/60 dark:text-slate-300"
-            }`}
-          >
-            {(r.isActive ?? true) ? "Yes" : "No"}
-          </span>
-        ),
-      },
+      { key: "active", header: "Active", render: (r) => <span className="text-sm">{(r.isActive ?? true) ? "Yes" : "No"}</span> },
       {
         key: "actions",
         header: "",
@@ -320,61 +263,55 @@ export function InputParametersTab({ asset, caps }: AssetDetailsTabProps) {
               Edit
             </button>
           ) : (
-            <button
-              type="button"
-              className="btn-ghost opacity-60"
-              disabled
-              title={`Edit requires Editor/Admin (current: ${roleLabel(caps.isViewer ? "Viewer" : undefined)})`}
-            >
+            <button type="button" className="btn-ghost opacity-60" disabled title="Edit requires Editor or Admin role">
               Edit
             </button>
           ),
       },
     ],
-    [caps.canEdit, caps.isViewer, selectedInputParameterId, setSelectedInputParameterId],
+    [caps.canEdit, selectedInputParameterId, setSelectedInputParameterId, uomIndex],
   );
 
   return (
     <div className="space-y-4">
-      <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-soft dark:border-slate-800 dark:bg-slate-950">
-        <CrudActionBar
-          title="Associated Input Parameters"
-          description="Select an input parameter. This selection drives EF Source Mapping, Throughput Setup, and Data Input tabs."
-          caps={caps}
-          canCreate={caps.canCreate}
-          onCreate={openCreate}
-          createLabel="Create Input Parameter"
-        />
-
-        <div className="mt-4">
-          {loading ? (
-            <LoaderSpinner label="Loading input parameters..." />
-          ) : (
-            <DataTable<Row>
-              columns={columns}
-              rows={rows}
-              rowKey={(r) => r.inputParameterId}
-              emptyLabel="No input parameters found for this asset."
-            />
-          )}
-        </div>
-
-        <div className="mt-4 rounded-2xl bg-slate-50 p-4 text-sm text-slate-700 dark:bg-slate-900/60 dark:text-slate-200">
-          <div className="text-xs font-semibold uppercase tracking-wide text-slate-600 dark:text-slate-300">
-            Current selection
-          </div>
-          <div className="mt-1">
-            {selectedInputParameterId ? (
-              <>
-                Input Parameter ID:{" "}
-                <span className="font-mono font-semibold">{selectedInputParameterId}</span>
-              </>
+      <TabStatePanel
+        title="Associated Input Parameters"
+        description="Select an input parameter. This selection drives EF Source Mapping, Throughput Setup, and Data Input tabs."
+        loading={loading}
+        error={error}
+        isEmpty={!loading && !error && rows.length === 0}
+        emptyTitle="No input parameters"
+        emptyMessage="Create at least one input parameter to continue configuration."
+        emptyActions={
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div className="text-xs opacity-80">
+              Next step: create an input parameter (name + optional UOM + optional reporting program).
+            </div>
+            {caps.canCreate ? (
+              <button type="button" className="btn-primary" onClick={openCreate}>
+                Create Input Parameter
+              </button>
             ) : (
-              <span className="muted">None selected.</span>
+              <button type="button" className="btn-primary opacity-60" disabled title="Create requires Editor or Admin role">
+                Create Input Parameter
+              </button>
             )}
           </div>
+        }
+      >
+        <div className="space-y-4">
+          <CrudActionBar
+            title="Input Parameters"
+            description={selectedInputParameterId ? `Current selection: ${selectedInputParameterId}` : "Select a row to drive dependent tabs."}
+            caps={caps}
+            canCreate={caps.canCreate}
+            onCreate={openCreate}
+            createLabel="Create Input Parameter"
+          />
+
+          <DataTable<Row> columns={columns} rows={rows} rowKey={(r) => r.inputParameterId} emptyLabel="No input parameters." />
         </div>
-      </div>
+      </TabStatePanel>
 
       <Modal
         open={modalOpen}
@@ -382,12 +319,7 @@ export function InputParametersTab({ asset, caps }: AssetDetailsTabProps) {
         onClose={() => (saving ? null : setModalOpen(false))}
         footer={
           <>
-            <button
-              className="btn-ghost"
-              type="button"
-              onClick={() => setModalOpen(false)}
-              disabled={saving}
-            >
+            <button className="btn-ghost" type="button" onClick={() => setModalOpen(false)} disabled={saving}>
               Cancel
             </button>
             <button className="btn-primary" type="button" onClick={onSave} disabled={saving}>
@@ -411,47 +343,38 @@ export function InputParametersTab({ asset, caps }: AssetDetailsTabProps) {
             error={fieldErrors.inputParameterName}
           />
 
-          <label className="block">
-            <div className="label">UOM (optional)</div>
-            <select
-              className="input mt-1"
-              value={form.uomId}
-              onChange={(e) => setForm((s) => ({ ...s, uomId: e.target.value }))}
-            >
-              <option value="">—</option>
-              {activeUoms.map((u) => (
-                <option key={u.uomId} value={u.uomId}>
-                  {u.uomCode ? `${u.uomCode} — ` : ""}{u.uomName || u.uomId}
-                </option>
-              ))}
-            </select>
-            {fieldErrors.uomId ? <div className="mt-1 text-sm text-red-600">{fieldErrors.uomId}</div> : null}
-          </label>
+          <FormSelect
+            label="UOM (optional)"
+            value={form.uomId}
+            onChange={(v) => setForm((s) => ({ ...s, uomId: v }))}
+            options={uoms.map((u) => ({
+              value: u.uomId,
+              label: `${u.uomCode ? `${u.uomCode} — ` : ""}${(u.uomName || u.uomId) as string}`,
+            }))}
+            error={fieldErrors.uomId}
+            placeholder="—"
+            helpText={uoms.length === 0 ? "No active UOM masters were returned. Check master data setup." : null}
+          />
 
-          <label className="block">
-            <div className="label">Reporting Program (optional)</div>
-            <select
-              className="input mt-1"
-              value={form.reportingProgramId}
-              onChange={(e) => setForm((s) => ({ ...s, reportingProgramId: e.target.value }))}
-            >
-              <option value="">—</option>
-              {activePrograms.map((p) => (
-                <option key={p.reportingProgramId} value={p.reportingProgramId}>
-                  {p.programName || p.reportingProgramId}
-                </option>
-              ))}
-            </select>
-            {fieldErrors.reportingProgramId ? (
-              <div className="mt-1 text-sm text-red-600">{fieldErrors.reportingProgramId}</div>
-            ) : null}
-          </label>
+          <FormSelect
+            label="Reporting Program (optional)"
+            value={form.reportingProgramId}
+            onChange={(v) => setForm((s) => ({ ...s, reportingProgramId: v }))}
+            options={programs.map((p) => ({
+              value: p.reportingProgramId,
+              label: (p.programName || p.reportingProgramId) as string,
+            }))}
+            error={fieldErrors.reportingProgramId}
+            placeholder="—"
+            helpText={programs.length === 0 ? "No active reporting programs were returned. Check master data setup." : null}
+          />
 
           <FormInput
             label="Input Type (optional)"
             value={form.inputType}
             onChange={(v) => setForm((s) => ({ ...s, inputType: v }))}
             error={fieldErrors.inputType}
+            placeholder="e.g., Calculated, Manual, Sensor"
           />
 
           <FormInput
@@ -459,16 +382,19 @@ export function InputParametersTab({ asset, caps }: AssetDetailsTabProps) {
             value={form.dataEntryFrequency}
             onChange={(v) => setForm((s) => ({ ...s, dataEntryFrequency: v }))}
             error={fieldErrors.dataEntryFrequency}
+            placeholder="e.g., Hourly, Daily, Monthly"
           />
 
           <label className="flex items-center gap-2 text-sm">
-            <input
-              type="checkbox"
-              checked={form.isActive}
-              onChange={(e) => setForm((s) => ({ ...s, isActive: e.target.checked }))}
-            />
+            <input type="checkbox" checked={form.isActive} onChange={(e) => setForm((s) => ({ ...s, isActive: e.target.checked }))} />
             Active
           </label>
+
+          {selectedInputParameterId ? (
+            <div className="rounded-xl bg-slate-50 px-3 py-2 text-xs text-slate-700 dark:bg-slate-900/60 dark:text-slate-200">
+              Current selection drives dependent tabs: EF Source Mapping, Throughput Setup, Data Input.
+            </div>
+          ) : null}
         </div>
       </Modal>
     </div>

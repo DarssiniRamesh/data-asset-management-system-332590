@@ -14,7 +14,7 @@ import { getUiCapabilities } from "../lib/rbac";
 import { AssetDetailsOverviewTab } from "./asset-details/tabs/AssetDetailsOverviewTab";
 import { AssetPropertiesTab } from "./asset-details/tabs/AssetPropertiesTab";
 import { ControlDevicesTab } from "./asset-details/tabs/ControlDevicesTab";
-import { InputParametersTab } from "./asset-details/tabs/InputParametersTab";
+import { InputParametersTab } from "./asset-details/tabs/InputParametersTab"; // master-backed dropdowns (UOM/Reporting Program)
 import { ParentInputParameterMappingTab } from "./asset-details/tabs/ParentInputParameterMappingTab";
 import { ReportingAttributesMappingTab } from "./asset-details/tabs/ReportingAttributesMappingTab";
 import { StatusLogTab } from "./asset-details/tabs/StatusLogTab";
