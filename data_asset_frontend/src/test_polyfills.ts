@@ -35,11 +35,16 @@ class MockIntersectionObserver implements IntersectionObserver {
   }
 }
 
-declare global {
-  // eslint-disable-next-line no-var
-  var IntersectionObserver: typeof IntersectionObserver | undefined;
-}
-
+/**
+ * Note: Do NOT redeclare `var IntersectionObserver` in `declare global` here.
+ * `lib.dom.d.ts` already declares it as a non-optional global. Re-declaring it
+ * (especially with `| undefined`) causes TS2403 in some build/test setups.
+ *
+ * Runtime behavior remains the same: only polyfill when it's actually missing
+ * in the jsdom environment.
+ */
 if (typeof globalThis.IntersectionObserver === "undefined") {
-  globalThis.IntersectionObserver = MockIntersectionObserver as unknown as typeof IntersectionObserver;
+  // Cast `globalThis` to allow assignment in TS without altering the global type declaration.
+  (globalThis as typeof globalThis & { IntersectionObserver: typeof IntersectionObserver }).IntersectionObserver =
+    MockIntersectionObserver as unknown as typeof IntersectionObserver;
 }
