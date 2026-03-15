@@ -756,9 +756,10 @@ export async function listControlDeviceMappings(
   const rows = await apiRequest<BackendControlDeviceMappingDto[]>({
     method: "GET",
     path: `/api/assets/${encodeURIComponent(assetId)}/control-device-mappings`,
-    // Some environments block cross-origin GETs when Authorization is present due to incomplete CORS allowlists.
-    // The list endpoint is safe to call without auth in this UI flow; mutations still use auth.
-    auth: false,
+    // IMPORTANT:
+    // This endpoint is authenticated on the backend (Bearer token required).
+    // Keep GET requests CORS-safe by not adding unnecessary headers (apiRequest already avoids Content-Type when no body).
+    // We therefore keep auth enabled (default) so callers get consistent 401 handling (session-expired panel).
   });
   return Array.isArray(rows) ? rows.map(mapControlDeviceMappingFromBackend) : [];
 }
