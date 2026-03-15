@@ -203,6 +203,27 @@ export function ControlDevicesTab({ asset, caps }: AssetDetailsTabProps) {
         isEmpty={!loading && !error && rows.length === 0}
         emptyTitle="No control device mappings"
         emptyMessage="No control devices are currently mapped to this asset."
+        emptyActions={
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div className="text-xs opacity-80">
+              Next step: map one or more site control devices to this asset so downstream configuration can reference them.
+            </div>
+            {caps.canCreate ? (
+              <button type="button" className="btn-primary" onClick={openCreate}>
+                Create Mapping
+              </button>
+            ) : (
+              <button
+                type="button"
+                className="btn-primary opacity-60"
+                disabled
+                title="Create requires Editor or Admin role"
+              >
+                Create Mapping
+              </button>
+            )}
+          </div>
+        }
       >
         <div className="space-y-4">
           <CrudActionBar

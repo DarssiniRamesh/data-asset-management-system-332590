@@ -173,6 +173,27 @@ export function AssetPropertiesTab({ asset, caps }: AssetDetailsTabProps) {
         isEmpty={!loading && !error && rows.length === 0}
         emptyTitle="No asset properties"
         emptyMessage="No properties were found for this asset."
+        emptyActions={
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div className="text-xs opacity-80">
+              Next step: add at least one property (e.g., identifiers, configuration flags, or descriptive attributes).
+            </div>
+            {caps.canCreate ? (
+              <button type="button" className="btn-primary" onClick={openCreate}>
+                Create Property
+              </button>
+            ) : (
+              <button
+                type="button"
+                className="btn-primary opacity-60"
+                disabled
+                title="Create requires Editor or Admin role"
+              >
+                Create Property
+              </button>
+            )}
+          </div>
+        }
       >
         <div className="space-y-4">
           <CrudActionBar

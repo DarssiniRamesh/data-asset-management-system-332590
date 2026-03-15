@@ -10,6 +10,13 @@ type TabStatePanelProps = {
   isEmpty: boolean;
   emptyTitle: string;
   emptyMessage?: string;
+  /**
+   * Optional call-to-action(s) displayed in the empty state.
+   * Contract:
+   *  - Only rendered when isEmpty === true and there is no loading/error.
+   *  - Use for BRD-aligned “what do I do next?” guidance on post-create flows.
+   */
+  emptyActions?: React.ReactNode;
   children: React.ReactNode;
 };
 
@@ -71,6 +78,8 @@ export function TabStatePanel(props: TabStatePanelProps) {
             {props.emptyMessage ? (
               <div className="mt-1 opacity-90">{props.emptyMessage}</div>
             ) : null}
+
+            {props.emptyActions ? <div className="mt-3">{props.emptyActions}</div> : null}
           </div>
         ) : (
           props.children

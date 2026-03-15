@@ -413,6 +413,28 @@ export function ThroughputSetupTab({ asset, caps }: AssetDetailsTabProps) {
         isEmpty={!loading && !error && rows.length === 0}
         emptyTitle="No throughput equations"
         emptyMessage="No throughput equations were found for the selected input parameter."
+        emptyActions={
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div className="text-xs opacity-80">
+              Next step: create a throughput equation for InputParameterId{" "}
+              <span className="font-mono font-semibold">{selectedInputParameterId}</span>. You can then add scalars from the equation row.
+            </div>
+            {caps.canCreate ? (
+              <button type="button" className="btn-primary" onClick={openCreateEquation}>
+                Create Equation
+              </button>
+            ) : (
+              <button
+                type="button"
+                className="btn-primary opacity-60"
+                disabled
+                title="Create requires Editor or Admin role"
+              >
+                Create Equation
+              </button>
+            )}
+          </div>
+        }
       >
         <div className="space-y-4">
           <CrudActionBar

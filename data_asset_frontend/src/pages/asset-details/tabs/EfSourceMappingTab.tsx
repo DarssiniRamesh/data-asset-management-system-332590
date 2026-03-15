@@ -188,6 +188,27 @@ export function EfSourceMappingTab({ asset, caps }: AssetDetailsTabProps) {
         isEmpty={!loading && !error && rows.length === 0}
         emptyTitle="No EF source mappings"
         emptyMessage="No EF source mappings were found for the selected input parameter."
+        emptyActions={
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div className="text-xs opacity-80">
+              Next step: add an EF Source ID for InputParameterId <span className="font-mono font-semibold">{selectedInputParameterId}</span>.
+            </div>
+            {caps.canCreate ? (
+              <button type="button" className="btn-primary" onClick={openCreate}>
+                Create EF Mapping
+              </button>
+            ) : (
+              <button
+                type="button"
+                className="btn-primary opacity-60"
+                disabled
+                title="Create requires Editor or Admin role"
+              >
+                Create EF Mapping
+              </button>
+            )}
+          </div>
+        }
       >
         <div className="space-y-4">
           <CrudActionBar
