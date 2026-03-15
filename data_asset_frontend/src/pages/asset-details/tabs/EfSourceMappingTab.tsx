@@ -344,26 +344,46 @@ export function EfSourceMappingTab({ asset, caps }: AssetDetailsTabProps) {
         ) : null}
 
         <div className="space-y-3">
-          <FormInput
-            label="EF Source (set/table)"
-            value={form.efSourceSetOrTable}
-            onChange={(v) => setForm((s) => ({ ...s, efSourceSetOrTable: v }))}
-            error={fieldErrors.efSourceSetOrTable}
-          />
+          <div>
+            <FormInput
+              label="EF Source (set/table)"
+              value={form.efSourceSetOrTable}
+              onChange={(v) => setForm((s) => ({ ...s, efSourceSetOrTable: v }))}
+              placeholder="Example: ef_emissions_factors (table) or vw_ef_sources (view)"
+              error={fieldErrors.efSourceSetOrTable}
+            />
+            <div className="muted mt-1 text-xs">
+              Enter the EF source identifier your team uses (usually the database{" "}
+              <span className="font-mono">table</span> or <span className="font-mono">view</span>{" "}
+              name). This field is required and cannot be blank.
+            </div>
+          </div>
 
-          <FormInput
-            label="Equation Setup"
-            value={form.equationSetup}
-            onChange={(v) => setForm((s) => ({ ...s, equationSetup: v }))}
-            error={fieldErrors.equationSetup}
-          />
+          <div>
+            <FormInput
+              label="Equation Setup"
+              value={form.equationSetup}
+              onChange={(v) => setForm((s) => ({ ...s, equationSetup: v }))}
+              placeholder="Optional. Example: CO2e = Activity * EF * GWP"
+              error={fieldErrors.equationSetup}
+            />
+            <div className="muted mt-1 text-xs">
+              Optional: brief description of how the EF is applied (formula, notes, assumptions).
+            </div>
+          </div>
 
-          <FormInput
-            label="Scalar Values"
-            value={form.scalarValues}
-            onChange={(v) => setForm((s) => ({ ...s, scalarValues: v }))}
-            error={fieldErrors.scalarValues}
-          />
+          <div>
+            <FormInput
+              label="Scalar Values"
+              value={form.scalarValues}
+              onChange={(v) => setForm((s) => ({ ...s, scalarValues: v }))}
+              placeholder="Optional. Example: {GWP: 25, unit: kgCO2e/MMBtu}"
+              error={fieldErrors.scalarValues}
+            />
+            <div className="muted mt-1 text-xs">
+              Optional: any scalars/parameters used by the equation (free text or JSON).
+            </div>
+          </div>
         </div>
       </Modal>
     </div>
