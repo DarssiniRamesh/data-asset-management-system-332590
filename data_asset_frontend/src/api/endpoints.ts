@@ -18,15 +18,20 @@ import type {
   CreateChemicalRawMaterialRequest,
   CreateChemicalSdsRequest,
   CreateControlDeviceMappingRequest,
+  CreateControlDeviceMasterRequest,
   CreateDataInputValueRequest,
   CreateEfSourceMappingRequest,
+  CreateEquationMasterRequest,
   CreateInputParameterRequest,
   CreateLabDataConfigurationRequest,
   CreateParentInputMappingRequest,
   CreateReportingAttributeMappingRequest,
+  CreateReportingProgramMasterRequest,
   CreateSiteProfileRequest,
+  CreateStatusCodeMasterRequest,
   CreateThroughputEquationRequest,
   CreateThroughputScalarRequest,
+  CreateUomMasterRequest,
   CreateWaterProcessConfigurationRequest,
   CreateWwtsProcessStreamRequest,
   DataInputValueDto,
@@ -55,15 +60,20 @@ import type {
   UpdateChemicalRawMaterialRequest,
   UpdateChemicalSdsRequest,
   UpdateControlDeviceMappingRequest,
+  UpdateControlDeviceMasterRequest,
   UpdateDataInputValueRequest,
   UpdateEfSourceMappingRequest,
+  UpdateEquationMasterRequest,
   UpdateInputParameterRequest,
   UpdateLabDataConfigurationRequest,
   UpdateParentInputMappingRequest,
   UpdateReportingAttributeMappingRequest,
+  UpdateReportingProgramMasterRequest,
   UpdateSiteProfileRequest,
+  UpdateStatusCodeMasterRequest,
   UpdateThroughputEquationRequest,
   UpdateThroughputScalarRequest,
+  UpdateUomMasterRequest,
   UpdateWaterProcessConfigurationRequest,
   UpdateWwtsProcessStreamRequest,
   WaterProcessConfigurationDto,
@@ -1409,10 +1419,314 @@ export async function queryStatusCodeMasters(params?: {
     ? rows.map((r) => ({
         statusCodeId: pickId(r, "statusCodeId", "StatusCodeId"),
         statusCode: (r["statusCode"] ?? r["StatusCode"] ?? null) as string | null,
-        statusDescription: (r["statusDescription"] ?? r["StatusDescription"] ?? null) as string | null,
+        statusDescription: (r["statusDescription"] ??
+          r["StatusDescription"] ??
+          null) as string | null,
         isActive: (r["isActive"] ?? r["IsActive"] ?? true) as boolean,
       }))
     : [];
+}
+
+// PUBLIC_INTERFACE
+export async function createUomMaster(
+  req: CreateUomMasterRequest,
+): Promise<UomMasterDto> {
+  /** POST /api/masters/uoms */
+  const created = await apiRequest<BackendMasterBase>({
+    method: "POST",
+    path: "/api/masters/uoms",
+    body: req,
+  });
+
+  return {
+    uomId: pickId(created, "uomId", "UomId"),
+    uomName: (created["uomName"] ?? created["UomName"] ?? null) as string | null,
+    uomCode: (created["uomCode"] ?? created["UomCode"] ?? null) as string | null,
+    isActive: (created["isActive"] ?? created["IsActive"] ?? true) as boolean,
+  };
+}
+
+// PUBLIC_INTERFACE
+export async function updateUomMaster(
+  uomId: string,
+  req: UpdateUomMasterRequest,
+): Promise<UomMasterDto> {
+  /** PUT /api/masters/uoms/{uomId} */
+  const updated = await apiRequest<BackendMasterBase>({
+    method: "PUT",
+    path: `/api/masters/uoms/${encodeURIComponent(uomId)}`,
+    body: req,
+  });
+
+  return {
+    uomId: pickId(updated, "uomId", "UomId") || uomId,
+    uomName: (updated["uomName"] ?? updated["UomName"] ?? null) as string | null,
+    uomCode: (updated["uomCode"] ?? updated["UomCode"] ?? null) as string | null,
+    isActive: (updated["isActive"] ?? updated["IsActive"] ?? true) as boolean,
+  };
+}
+
+// PUBLIC_INTERFACE
+export async function disableUomMaster(
+  uomId: string,
+  modifiedBy: string,
+  correlationId: string,
+): Promise<UomMasterDto> {
+  /** Soft-disable by updating IsActive=false (backend does not expose DELETE). */
+  return updateUomMaster(uomId, {
+    uomName: "",
+    uomCode: "",
+    isActive: false,
+    modifiedBy,
+    correlationId,
+  });
+}
+
+// PUBLIC_INTERFACE
+export async function createReportingProgramMaster(
+  req: CreateReportingProgramMasterRequest,
+): Promise<ReportingProgramMasterDto> {
+  /** POST /api/masters/reporting-programs */
+  const created = await apiRequest<BackendMasterBase>({
+    method: "POST",
+    path: "/api/masters/reporting-programs",
+    body: req,
+  });
+
+  return {
+    reportingProgramId: pickId(created, "reportingProgramId", "ReportingProgramId"),
+    programName: (created["programName"] ?? created["ProgramName"] ?? null) as
+      | string
+      | null,
+    isActive: (created["isActive"] ?? created["IsActive"] ?? true) as boolean,
+  };
+}
+
+// PUBLIC_INTERFACE
+export async function updateReportingProgramMaster(
+  reportingProgramId: string,
+  req: UpdateReportingProgramMasterRequest,
+): Promise<ReportingProgramMasterDto> {
+  /** PUT /api/masters/reporting-programs/{reportingProgramId} */
+  const updated = await apiRequest<BackendMasterBase>({
+    method: "PUT",
+    path: `/api/masters/reporting-programs/${encodeURIComponent(reportingProgramId)}`,
+    body: req,
+  });
+
+  return {
+    reportingProgramId:
+      pickId(updated, "reportingProgramId", "ReportingProgramId") || reportingProgramId,
+    programName: (updated["programName"] ?? updated["ProgramName"] ?? null) as
+      | string
+      | null,
+    isActive: (updated["isActive"] ?? updated["IsActive"] ?? true) as boolean,
+  };
+}
+
+// PUBLIC_INTERFACE
+export async function disableReportingProgramMaster(
+  reportingProgramId: string,
+  modifiedBy: string,
+  correlationId: string,
+): Promise<ReportingProgramMasterDto> {
+  return updateReportingProgramMaster(reportingProgramId, {
+    programName: "",
+    isActive: false,
+    modifiedBy,
+    correlationId,
+  });
+}
+
+// PUBLIC_INTERFACE
+export async function createControlDeviceMaster(
+  req: CreateControlDeviceMasterRequest,
+): Promise<ControlDeviceMasterDto> {
+  /** POST /api/masters/control-devices */
+  const created = await apiRequest<BackendMasterBase>({
+    method: "POST",
+    path: "/api/masters/control-devices",
+    body: req,
+  });
+
+  return {
+    controlDeviceId: pickId(created, "controlDeviceId", "ControlDeviceId"),
+    siteId: (created["siteId"] ?? created["SiteId"] ?? null) as string | null,
+    deviceName: (created["deviceName"] ?? created["DeviceName"] ?? null) as
+      | string
+      | null,
+    deviceTag: (created["deviceTag"] ?? created["DeviceTag"] ?? null) as
+      | string
+      | null,
+    isActive: (created["isActive"] ?? created["IsActive"] ?? true) as boolean,
+  };
+}
+
+// PUBLIC_INTERFACE
+export async function updateControlDeviceMaster(
+  controlDeviceId: string,
+  req: UpdateControlDeviceMasterRequest,
+): Promise<ControlDeviceMasterDto> {
+  /** PUT /api/masters/control-devices/{controlDeviceId} */
+  const updated = await apiRequest<BackendMasterBase>({
+    method: "PUT",
+    path: `/api/masters/control-devices/${encodeURIComponent(controlDeviceId)}`,
+    body: req,
+  });
+
+  return {
+    controlDeviceId:
+      pickId(updated, "controlDeviceId", "ControlDeviceId") || controlDeviceId,
+    siteId: (updated["siteId"] ?? updated["SiteId"] ?? null) as string | null,
+    deviceName: (updated["deviceName"] ?? updated["DeviceName"] ?? null) as
+      | string
+      | null,
+    deviceTag: (updated["deviceTag"] ?? updated["DeviceTag"] ?? null) as
+      | string
+      | null,
+    isActive: (updated["isActive"] ?? updated["IsActive"] ?? true) as boolean,
+  };
+}
+
+// PUBLIC_INTERFACE
+export async function disableControlDeviceMaster(
+  controlDeviceId: string,
+  modifiedBy: string,
+  correlationId: string,
+): Promise<ControlDeviceMasterDto> {
+  return updateControlDeviceMaster(controlDeviceId, {
+    siteId: "",
+    deviceName: "",
+    deviceTag: "",
+    isActive: false,
+    modifiedBy,
+    correlationId,
+  });
+}
+
+// PUBLIC_INTERFACE
+export async function createEquationMaster(
+  req: CreateEquationMasterRequest,
+): Promise<EquationMasterDto> {
+  /** POST /api/masters/equations */
+  const created = await apiRequest<BackendMasterBase>({
+    method: "POST",
+    path: "/api/masters/equations",
+    body: req,
+  });
+
+  return {
+    equationMasterId: pickId(created, "equationMasterId", "EquationMasterId"),
+    equationName: (created["equationName"] ?? created["EquationName"] ?? null) as
+      | string
+      | null,
+    equationText: (created["equationText"] ?? created["EquationText"] ?? null) as
+      | string
+      | null,
+    isActive: (created["isActive"] ?? created["IsActive"] ?? true) as boolean,
+  };
+}
+
+// PUBLIC_INTERFACE
+export async function updateEquationMaster(
+  equationMasterId: string,
+  req: UpdateEquationMasterRequest,
+): Promise<EquationMasterDto> {
+  /** PUT /api/masters/equations/{equationMasterId} */
+  const updated = await apiRequest<BackendMasterBase>({
+    method: "PUT",
+    path: `/api/masters/equations/${encodeURIComponent(equationMasterId)}`,
+    body: req,
+  });
+
+  return {
+    equationMasterId:
+      pickId(updated, "equationMasterId", "EquationMasterId") || equationMasterId,
+    equationName: (updated["equationName"] ?? updated["EquationName"] ?? null) as
+      | string
+      | null,
+    equationText: (updated["equationText"] ?? updated["EquationText"] ?? null) as
+      | string
+      | null,
+    isActive: (updated["isActive"] ?? updated["IsActive"] ?? true) as boolean,
+  };
+}
+
+// PUBLIC_INTERFACE
+export async function disableEquationMaster(
+  equationMasterId: string,
+  modifiedBy: string,
+  correlationId: string,
+): Promise<EquationMasterDto> {
+  return updateEquationMaster(equationMasterId, {
+    equationName: "",
+    equationText: "",
+    isActive: false,
+    modifiedBy,
+    correlationId,
+  });
+}
+
+// PUBLIC_INTERFACE
+export async function createStatusCodeMaster(
+  req: CreateStatusCodeMasterRequest,
+): Promise<StatusCodeMasterDto> {
+  /** POST /api/masters/status-codes */
+  const created = await apiRequest<BackendMasterBase>({
+    method: "POST",
+    path: "/api/masters/status-codes",
+    body: req,
+  });
+
+  return {
+    statusCodeId: pickId(created, "statusCodeId", "StatusCodeId"),
+    statusCode: (created["statusCode"] ?? created["StatusCode"] ?? null) as
+      | string
+      | null,
+    statusDescription: (created["statusDescription"] ??
+      created["StatusDescription"] ??
+      null) as string | null,
+    isActive: (created["isActive"] ?? created["IsActive"] ?? true) as boolean,
+  };
+}
+
+// PUBLIC_INTERFACE
+export async function updateStatusCodeMaster(
+  statusCodeId: string,
+  req: UpdateStatusCodeMasterRequest,
+): Promise<StatusCodeMasterDto> {
+  /** PUT /api/masters/status-codes/{statusCodeId} */
+  const updated = await apiRequest<BackendMasterBase>({
+    method: "PUT",
+    path: `/api/masters/status-codes/${encodeURIComponent(statusCodeId)}`,
+    body: req,
+  });
+
+  return {
+    statusCodeId: pickId(updated, "statusCodeId", "StatusCodeId") || statusCodeId,
+    statusCode: (updated["statusCode"] ?? updated["StatusCode"] ?? null) as
+      | string
+      | null,
+    statusDescription: (updated["statusDescription"] ??
+      updated["StatusDescription"] ??
+      null) as string | null,
+    isActive: (updated["isActive"] ?? updated["IsActive"] ?? true) as boolean,
+  };
+}
+
+// PUBLIC_INTERFACE
+export async function disableStatusCodeMaster(
+  statusCodeId: string,
+  modifiedBy: string,
+  correlationId: string,
+): Promise<StatusCodeMasterDto> {
+  return updateStatusCodeMaster(statusCodeId, {
+    statusCode: "",
+    statusDescription: "",
+    isActive: false,
+    modifiedBy,
+    correlationId,
+  });
 }
 
 /**

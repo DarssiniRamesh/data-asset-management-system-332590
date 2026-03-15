@@ -15,6 +15,11 @@ import { ChemicalSdsPage } from "./pages/section4/ChemicalSdsPage";
 import { LabDataConfigurationsPage } from "./pages/section4/LabDataConfigurationsPage";
 import { WaterProcessConfigurationsPage } from "./pages/section4/WaterProcessConfigurationsPage";
 import { WwtsProcessStreamsPage } from "./pages/section4/WwtsProcessStreamsPage";
+import { UomsAdminPage } from "./pages/masters/UomsAdminPage";
+import { ControlDevicesAdminPage } from "./pages/masters/ControlDevicesAdminPage";
+import { EquationsAdminPage } from "./pages/masters/EquationsAdminPage";
+import { StatusCodesAdminPage } from "./pages/masters/StatusCodesAdminPage";
+import { ReportingProgramsAdminPage } from "./pages/masters/ReportingProgramsAdminPage";
 import { AuthProvider } from "./state/AuthContext";
 import { ThemeProvider } from "./state/ThemeContext";
 import { ToastProvider } from "./state/ToastContext";
@@ -46,8 +51,17 @@ function App() {
                   <Route path="assets/:assetId/edit" element={<EditAssetPage />} />
                   <Route path="assets/:assetId/copy" element={<CopyAssetPage />} />
 
+                  <Route path="masters/uoms" element={<UomsAdminPage />} />
+                  <Route path="masters/control-devices" element={<ControlDevicesAdminPage />} />
+                  <Route path="masters/equations" element={<EquationsAdminPage />} />
+                  <Route path="masters/status-codes" element={<StatusCodesAdminPage />} />
+                  <Route path="masters/reporting-programs" element={<ReportingProgramsAdminPage />} />
+
                   <Route path="section4/site-profile" element={<SiteProfilesPage />} />
-                  <Route path="section4/control-device-configuration" element={<div className="text-sm">Use Masters → Control Devices (existing module).</div>} />
+                  <Route
+                    path="section4/control-device-configuration"
+                    element={<div className="text-sm">Use Masters → Control Devices (existing module).</div>}
+                  />
                   <Route path="section4/chemical-raw-materials" element={<ChemicalRawMaterialsPage />} />
                   <Route path="section4/chemical-sds" element={<ChemicalSdsPage />} />
                   <Route path="section4/lab-data" element={<LabDataConfigurationsPage />} />

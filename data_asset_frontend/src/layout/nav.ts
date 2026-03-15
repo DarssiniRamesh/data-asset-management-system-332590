@@ -1,5 +1,13 @@
 import type { IconBaseProps } from "react-icons";
-import { FaClipboardList, FaFlask, FaHome, FaPlusCircle, FaTable, FaTint } from "react-icons/fa";
+import {
+  FaClipboardList,
+  FaCogs,
+  FaFlask,
+  FaHome,
+  FaPlusCircle,
+  FaTable,
+  FaTint,
+} from "react-icons/fa";
 import type { Role } from "../api/types";
 import { can } from "../lib/rbac";
 
@@ -24,6 +32,13 @@ const ALL_NAV_ITEMS: NavItem[] = [
   { to: "/app", label: "Overview", icon: FaHome as unknown as NavIcon, requiredAction: "read" },
   { to: "/app/assets", label: "Assets", icon: FaTable as unknown as NavIcon, requiredAction: "read" },
   { to: "/app/assets/create", label: "Create", icon: FaPlusCircle as unknown as NavIcon, requiredAction: "create" },
+
+  // Master Data admin
+  { to: "/app/masters/uoms", label: "Masters: UOMs", icon: FaCogs as unknown as NavIcon, requiredAction: "read" },
+  { to: "/app/masters/control-devices", label: "Masters: Control Devices", icon: FaCogs as unknown as NavIcon, requiredAction: "read" },
+  { to: "/app/masters/equations", label: "Masters: Equations", icon: FaCogs as unknown as NavIcon, requiredAction: "read" },
+  { to: "/app/masters/status-codes", label: "Masters: Status Codes", icon: FaCogs as unknown as NavIcon, requiredAction: "read" },
+  { to: "/app/masters/reporting-programs", label: "Masters: Reporting Programs", icon: FaCogs as unknown as NavIcon, requiredAction: "read" },
 
   // BRD §4 modules
   { to: "/app/section4/site-profile", label: "Site Profile", icon: FaClipboardList as unknown as NavIcon, requiredAction: "read" },

@@ -558,6 +558,86 @@ export type StatusCodeMasterDto = {
   isActive?: boolean;
 };
 
+export type CreateUomMasterRequest = {
+  uomName: string;
+  uomCode: string;
+  isActive?: boolean;
+  createdBy: string;
+  correlationId: string;
+};
+
+export type UpdateUomMasterRequest = {
+  uomName: string;
+  uomCode: string;
+  isActive?: boolean;
+  modifiedBy: string;
+  correlationId: string;
+};
+
+export type CreateReportingProgramMasterRequest = {
+  programName: string;
+  isActive?: boolean;
+  createdBy: string;
+  correlationId: string;
+};
+
+export type UpdateReportingProgramMasterRequest = {
+  programName: string;
+  isActive?: boolean;
+  modifiedBy: string;
+  correlationId: string;
+};
+
+export type CreateControlDeviceMasterRequest = {
+  siteId: string;
+  deviceName: string;
+  deviceTag: string;
+  isActive?: boolean;
+  createdBy: string;
+  correlationId: string;
+};
+
+export type UpdateControlDeviceMasterRequest = {
+  siteId: string;
+  deviceName: string;
+  deviceTag: string;
+  isActive?: boolean;
+  modifiedBy: string;
+  correlationId: string;
+};
+
+export type CreateEquationMasterRequest = {
+  equationName: string;
+  equationText: string;
+  isActive?: boolean;
+  createdBy: string;
+  correlationId: string;
+};
+
+export type UpdateEquationMasterRequest = {
+  equationName: string;
+  equationText: string;
+  isActive?: boolean;
+  modifiedBy: string;
+  correlationId: string;
+};
+
+export type CreateStatusCodeMasterRequest = {
+  statusCode: string;
+  statusDescription: string;
+  isActive?: boolean;
+  createdBy: string;
+  correlationId: string;
+};
+
+export type UpdateStatusCodeMasterRequest = {
+  statusCode: string;
+  statusDescription: string;
+  isActive?: boolean;
+  modifiedBy: string;
+  correlationId: string;
+};
+
 /**
  * ---- Existing loose/legacy rows used by earlier steps ----
  * (Kept for compatibility with already-wired legacy endpoints in endpoints.ts)
