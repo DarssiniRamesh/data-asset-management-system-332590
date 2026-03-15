@@ -1461,11 +1461,23 @@ export async function queryControlDeviceMasters(params?: {
       // Treat these as equivalent to keep the UI robust across serializers/seeds.
       const controlDeviceId = pickId(
         r,
+        // canonical OpenAPI / typical JSON
         "controlDeviceId",
         "ControlDeviceId",
+
+        // common DB-ish shapes
         "control_device_id",
+
+        // occasionally seen variants
         "controlDeviceID",
         "ControlDeviceID",
+
+        // some backends/serializers expose a “master id” name instead of the domain id name
+        "controlDeviceMasterId",
+        "ControlDeviceMasterId",
+        "control_device_master_id",
+
+        // generic fallbacks
         "id",
         "Id",
       ).trim();
