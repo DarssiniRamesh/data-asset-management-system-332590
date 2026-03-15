@@ -1362,30 +1362,58 @@ export async function queryControlDeviceMasters(params?: {
   activeOnly?: boolean;
   limit?: number;
 }): Promise<ControlDeviceMasterDto[]> {
+  /** ControlDeviceMastersQuery (canonical flow)
+   * Inputs:
+   *  - siteId?: string (optional; will be normalized via trim; empty becomes undefined)
+   *  - activeOnly?: boolean
+   *  - limit?: number
+   * Output:
+   *  - ControlDeviceMasterDto[]
+   * Observability:
+   *  - Debug logs contain normalized params + returned count.
+   */
   const qs = new URLSearchParams();
+
+  // Normalize siteId to avoid “invisible mismatch” bugs (e.g. trailing whitespace on Asset.siteId).
+  const normalizedSiteId =
+    params?.siteId !== undefined && params?.siteId !== null
+      ? params.siteId.trim()
+      : undefined;
 
   // IMPORTANT:
   // The backend OpenAPI uses `siteId` (lower camelCase). However, some deployments/binders
   // are configured in a way where query-key casing can matter (or have legacy expectations).
   // To be resilient, we send BOTH `siteId` and `SiteId` with the same value when provided.
-  if (params?.siteId) {
-    qs.set("siteId", params.siteId);
-    qs.set("SiteId", params.siteId);
+  if (normalizedSiteId) {
+    qs.set("siteId", normalizedSiteId);
+    qs.set("SiteId", normalizedSiteId);
   }
 
-  if (params?.activeOnly !== undefined) qs.set("ActiveOnly", String(params.activeOnly));
+  if (params?.activeOnly !== undefined)
+    qs.set("ActiveOnly", String(params.activeOnly));
 
   // OpenAPI uses `Limit`, but keep behavior consistent across environments by always using `Limit`.
   if (params?.limit !== undefined) qs.set("Limit", String(params.limit));
 
   const suffix = qs.toString() ? `?${qs.toString()}` : "";
+  const path = `/api/masters/control-devices${suffix}`;
+
+  // Lazy import to avoid circular deps / reduce bundle impact for other callers.
+  const { logger } = await import("../lib/logger");
+
+  logger.debug("ControlDeviceMastersQuery:start", {
+    siteId: normalizedSiteId ?? null,
+    activeOnly: params?.activeOnly ?? null,
+    limit: params?.limit ?? null,
+    path,
+  });
 
   const rows = await apiRequest<BackendMasterBase[]>({
     method: "GET",
-    path: `/api/masters/control-devices${suffix}`,
+    path,
   });
 
-  return Array.isArray(rows)
+  const mapped = Array.isArray(rows)
     ? rows.map((r) => ({
         controlDeviceId: pickId(r, "controlDeviceId", "ControlDeviceId"),
         siteId: (r["siteId"] ?? r["SiteId"] ?? null) as string | null,
@@ -1402,6 +1430,13 @@ export async function queryControlDeviceMasters(params?: {
         isActive: (r["isActive"] ?? r["IsActive"] ?? true) as boolean,
       }))
     : [];
+
+  logger.debug("ControlDeviceMastersQuery:ok", {
+    count: mapped.length,
+    siteId: normalizedSiteId ?? null,
+  });
+
+  return mapped;
 }
 
 // PUBLIC_INTERFACE
