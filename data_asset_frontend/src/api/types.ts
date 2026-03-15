@@ -525,64 +525,77 @@ export type UpdateDataInputValueRequest = {
 
 export type UomMasterDto = {
   uomId: string;
-  uomName?: string | null;
-  uomCode?: string | null;
+  /** Backend: UomKey */
+  uomKey?: string | null;
+  /** Backend: DisplayLabel */
+  displayLabel?: string | null;
   isActive?: boolean;
 };
 
 export type ReportingProgramMasterDto = {
   reportingProgramId: string;
-  programName?: string | null;
+  /** Backend: ProgramKey */
+  programKey?: string | null;
+  /** Backend: DisplayLabel */
+  displayLabel?: string | null;
   isActive?: boolean;
 };
 
 export type ControlDeviceMasterDto = {
   controlDeviceId: string;
   siteId?: string | null;
-  deviceName?: string | null;
-  deviceTag?: string | null;
+  /** Backend: DeviceKey */
+  deviceKey?: string | null;
+  /** Backend: DisplayLabel */
+  displayLabel?: string | null;
   isActive?: boolean;
 };
 
 export type EquationMasterDto = {
   equationMasterId: string;
-  equationName?: string | null;
-  equationText?: string | null;
-  isActive?: boolean;
+  /** Backend: EquationKey */
+  equationKey?: string | null;
+  /** Backend: VersionLabel */
+  versionLabel?: string | null;
+  effectiveFrom?: string | null;
+  effectiveTo?: string | null;
 };
 
 export type StatusCodeMasterDto = {
   statusCodeId: string;
   statusCode?: string | null;
-  statusDescription?: string | null;
+  /** Backend: BusinessMeaning */
+  businessMeaning?: string | null;
   isActive?: boolean;
 };
 
 export type CreateUomMasterRequest = {
-  uomName: string;
-  uomCode: string;
+  uomKey: string;
+  displayLabel: string;
   isActive?: boolean;
   createdBy: string;
   correlationId: string;
 };
 
 export type UpdateUomMasterRequest = {
-  uomName: string;
-  uomCode: string;
+  uomKey: string;
+  displayLabel: string;
   isActive?: boolean;
   modifiedBy: string;
   correlationId: string;
 };
 
 export type CreateReportingProgramMasterRequest = {
-  programName: string;
+  programKey: string;
+  displayLabel: string;
   isActive?: boolean;
   createdBy: string;
   correlationId: string;
 };
 
 export type UpdateReportingProgramMasterRequest = {
-  programName: string;
+  programKey: string;
+  displayLabel: string;
   isActive?: boolean;
   modifiedBy: string;
   correlationId: string;
@@ -590,8 +603,8 @@ export type UpdateReportingProgramMasterRequest = {
 
 export type CreateControlDeviceMasterRequest = {
   siteId: string;
-  deviceName: string;
-  deviceTag: string;
+  deviceKey: string;
+  displayLabel: string;
   isActive?: boolean;
   createdBy: string;
   correlationId: string;
@@ -599,32 +612,34 @@ export type CreateControlDeviceMasterRequest = {
 
 export type UpdateControlDeviceMasterRequest = {
   siteId: string;
-  deviceName: string;
-  deviceTag: string;
+  deviceKey: string;
+  displayLabel: string;
   isActive?: boolean;
   modifiedBy: string;
   correlationId: string;
 };
 
 export type CreateEquationMasterRequest = {
-  equationName: string;
-  equationText: string;
-  isActive?: boolean;
+  equationKey: string;
+  versionLabel: string;
+  effectiveFrom?: string | null;
+  effectiveTo?: string | null;
   createdBy: string;
   correlationId: string;
 };
 
 export type UpdateEquationMasterRequest = {
-  equationName: string;
-  equationText: string;
-  isActive?: boolean;
+  equationKey: string;
+  versionLabel: string;
+  effectiveFrom?: string | null;
+  effectiveTo?: string | null;
   modifiedBy: string;
   correlationId: string;
 };
 
 export type CreateStatusCodeMasterRequest = {
   statusCode: string;
-  statusDescription: string;
+  businessMeaning: string;
   isActive?: boolean;
   createdBy: string;
   correlationId: string;
@@ -632,7 +647,7 @@ export type CreateStatusCodeMasterRequest = {
 
 export type UpdateStatusCodeMasterRequest = {
   statusCode: string;
-  statusDescription: string;
+  businessMeaning: string;
   isActive?: boolean;
   modifiedBy: string;
   correlationId: string;

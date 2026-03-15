@@ -1315,9 +1315,13 @@ export async function queryUomMasters(params?: {
 
   return Array.isArray(rows)
     ? rows.map((r) => ({
-        uomId: pickId(r, "uomId", "UomId"),
-        uomName: (r["uomName"] ?? r["UomName"] ?? null) as string | null,
-        uomCode: (r["uomCode"] ?? r["UomCode"] ?? null) as string | null,
+        uomId: pickId(r, "uomId", "UomId", "uomId", "UomId"),
+        uomKey: (r["uomKey"] ?? r["UomKey"] ?? r["uomName"] ?? r["UomName"] ?? null) as string | null,
+        displayLabel: (r["displayLabel"] ??
+          r["DisplayLabel"] ??
+          r["uomCode"] ??
+          r["UomCode"] ??
+          null) as string | null,
         isActive: (r["isActive"] ?? r["IsActive"] ?? true) as boolean,
       }))
     : [];
@@ -1341,7 +1345,12 @@ export async function queryReportingProgramMasters(params?: {
   return Array.isArray(rows)
     ? rows.map((r) => ({
         reportingProgramId: pickId(r, "reportingProgramId", "ReportingProgramId"),
-        programName: (r["programName"] ?? r["ProgramName"] ?? null) as string | null,
+        programKey: (r["programKey"] ?? r["ProgramKey"] ?? null) as string | null,
+        displayLabel: (r["displayLabel"] ??
+          r["DisplayLabel"] ??
+          r["programName"] ??
+          r["ProgramName"] ??
+          null) as string | null,
         isActive: (r["isActive"] ?? r["IsActive"] ?? true) as boolean,
       }))
     : [];
@@ -1368,8 +1377,16 @@ export async function queryControlDeviceMasters(params?: {
     ? rows.map((r) => ({
         controlDeviceId: pickId(r, "controlDeviceId", "ControlDeviceId"),
         siteId: (r["siteId"] ?? r["SiteId"] ?? null) as string | null,
-        deviceName: (r["deviceName"] ?? r["DeviceName"] ?? null) as string | null,
-        deviceTag: (r["deviceTag"] ?? r["DeviceTag"] ?? null) as string | null,
+        deviceKey: (r["deviceKey"] ??
+          r["DeviceKey"] ??
+          r["deviceTag"] ??
+          r["DeviceTag"] ??
+          null) as string | null,
+        displayLabel: (r["displayLabel"] ??
+          r["DisplayLabel"] ??
+          r["deviceName"] ??
+          r["DeviceName"] ??
+          null) as string | null,
         isActive: (r["isActive"] ?? r["IsActive"] ?? true) as boolean,
       }))
     : [];
@@ -1393,9 +1410,18 @@ export async function queryEquationMasters(params?: {
   return Array.isArray(rows)
     ? rows.map((r) => ({
         equationMasterId: pickId(r, "equationMasterId", "EquationMasterId"),
-        equationName: (r["equationName"] ?? r["EquationName"] ?? null) as string | null,
-        equationText: (r["equationText"] ?? r["EquationText"] ?? null) as string | null,
-        isActive: (r["isActive"] ?? r["IsActive"] ?? true) as boolean,
+        equationKey: (r["equationKey"] ??
+          r["EquationKey"] ??
+          r["equationName"] ??
+          r["EquationName"] ??
+          null) as string | null,
+        versionLabel: (r["versionLabel"] ??
+          r["VersionLabel"] ??
+          r["equationText"] ??
+          r["EquationText"] ??
+          null) as string | null,
+        effectiveFrom: (r["effectiveFrom"] ?? r["EffectiveFrom"] ?? null) as string | null,
+        effectiveTo: (r["effectiveTo"] ?? r["EffectiveTo"] ?? null) as string | null,
       }))
     : [];
 }
@@ -1419,7 +1445,9 @@ export async function queryStatusCodeMasters(params?: {
     ? rows.map((r) => ({
         statusCodeId: pickId(r, "statusCodeId", "StatusCodeId"),
         statusCode: (r["statusCode"] ?? r["StatusCode"] ?? null) as string | null,
-        statusDescription: (r["statusDescription"] ??
+        businessMeaning: (r["businessMeaning"] ??
+          r["BusinessMeaning"] ??
+          r["statusDescription"] ??
           r["StatusDescription"] ??
           null) as string | null,
         isActive: (r["isActive"] ?? r["IsActive"] ?? true) as boolean,
@@ -1440,8 +1468,14 @@ export async function createUomMaster(
 
   return {
     uomId: pickId(created, "uomId", "UomId"),
-    uomName: (created["uomName"] ?? created["UomName"] ?? null) as string | null,
-    uomCode: (created["uomCode"] ?? created["UomCode"] ?? null) as string | null,
+    uomKey: (created["uomKey"] ?? created["UomKey"] ?? created["uomName"] ?? created["UomName"] ?? null) as
+      | string
+      | null,
+    displayLabel: (created["displayLabel"] ??
+      created["DisplayLabel"] ??
+      created["uomCode"] ??
+      created["UomCode"] ??
+      null) as string | null,
     isActive: (created["isActive"] ?? created["IsActive"] ?? true) as boolean,
   };
 }
@@ -1460,8 +1494,14 @@ export async function updateUomMaster(
 
   return {
     uomId: pickId(updated, "uomId", "UomId") || uomId,
-    uomName: (updated["uomName"] ?? updated["UomName"] ?? null) as string | null,
-    uomCode: (updated["uomCode"] ?? updated["UomCode"] ?? null) as string | null,
+    uomKey: (updated["uomKey"] ?? updated["UomKey"] ?? updated["uomName"] ?? updated["UomName"] ?? null) as
+      | string
+      | null,
+    displayLabel: (updated["displayLabel"] ??
+      updated["DisplayLabel"] ??
+      updated["uomCode"] ??
+      updated["UomCode"] ??
+      null) as string | null,
     isActive: (updated["isActive"] ?? updated["IsActive"] ?? true) as boolean,
   };
 }
@@ -1474,8 +1514,8 @@ export async function disableUomMaster(
 ): Promise<UomMasterDto> {
   /** Soft-disable by updating IsActive=false (backend does not expose DELETE). */
   return updateUomMaster(uomId, {
-    uomName: "",
-    uomCode: "",
+    uomKey: "",
+    displayLabel: "",
     isActive: false,
     modifiedBy,
     correlationId,
@@ -1495,9 +1535,12 @@ export async function createReportingProgramMaster(
 
   return {
     reportingProgramId: pickId(created, "reportingProgramId", "ReportingProgramId"),
-    programName: (created["programName"] ?? created["ProgramName"] ?? null) as
-      | string
-      | null,
+    programKey: (created["programKey"] ?? created["ProgramKey"] ?? null) as string | null,
+    displayLabel: (created["displayLabel"] ??
+      created["DisplayLabel"] ??
+      created["programName"] ??
+      created["ProgramName"] ??
+      null) as string | null,
     isActive: (created["isActive"] ?? created["IsActive"] ?? true) as boolean,
   };
 }
@@ -1517,9 +1560,12 @@ export async function updateReportingProgramMaster(
   return {
     reportingProgramId:
       pickId(updated, "reportingProgramId", "ReportingProgramId") || reportingProgramId,
-    programName: (updated["programName"] ?? updated["ProgramName"] ?? null) as
-      | string
-      | null,
+    programKey: (updated["programKey"] ?? updated["ProgramKey"] ?? null) as string | null,
+    displayLabel: (updated["displayLabel"] ??
+      updated["DisplayLabel"] ??
+      updated["programName"] ??
+      updated["ProgramName"] ??
+      null) as string | null,
     isActive: (updated["isActive"] ?? updated["IsActive"] ?? true) as boolean,
   };
 }
@@ -1552,12 +1598,16 @@ export async function createControlDeviceMaster(
   return {
     controlDeviceId: pickId(created, "controlDeviceId", "ControlDeviceId"),
     siteId: (created["siteId"] ?? created["SiteId"] ?? null) as string | null,
-    deviceName: (created["deviceName"] ?? created["DeviceName"] ?? null) as
-      | string
-      | null,
-    deviceTag: (created["deviceTag"] ?? created["DeviceTag"] ?? null) as
-      | string
-      | null,
+    deviceKey: (created["deviceKey"] ??
+      created["DeviceKey"] ??
+      created["deviceTag"] ??
+      created["DeviceTag"] ??
+      null) as string | null,
+    displayLabel: (created["displayLabel"] ??
+      created["DisplayLabel"] ??
+      created["deviceName"] ??
+      created["DeviceName"] ??
+      null) as string | null,
     isActive: (created["isActive"] ?? created["IsActive"] ?? true) as boolean,
   };
 }
@@ -1578,12 +1628,16 @@ export async function updateControlDeviceMaster(
     controlDeviceId:
       pickId(updated, "controlDeviceId", "ControlDeviceId") || controlDeviceId,
     siteId: (updated["siteId"] ?? updated["SiteId"] ?? null) as string | null,
-    deviceName: (updated["deviceName"] ?? updated["DeviceName"] ?? null) as
-      | string
-      | null,
-    deviceTag: (updated["deviceTag"] ?? updated["DeviceTag"] ?? null) as
-      | string
-      | null,
+    deviceKey: (updated["deviceKey"] ??
+      updated["DeviceKey"] ??
+      updated["deviceTag"] ??
+      updated["DeviceTag"] ??
+      null) as string | null,
+    displayLabel: (updated["displayLabel"] ??
+      updated["DisplayLabel"] ??
+      updated["deviceName"] ??
+      updated["DeviceName"] ??
+      null) as string | null,
     isActive: (updated["isActive"] ?? updated["IsActive"] ?? true) as boolean,
   };
 }
@@ -1617,13 +1671,18 @@ export async function createEquationMaster(
 
   return {
     equationMasterId: pickId(created, "equationMasterId", "EquationMasterId"),
-    equationName: (created["equationName"] ?? created["EquationName"] ?? null) as
-      | string
-      | null,
-    equationText: (created["equationText"] ?? created["EquationText"] ?? null) as
-      | string
-      | null,
-    isActive: (created["isActive"] ?? created["IsActive"] ?? true) as boolean,
+    equationKey: (created["equationKey"] ??
+      created["EquationKey"] ??
+      created["equationName"] ??
+      created["EquationName"] ??
+      null) as string | null,
+    versionLabel: (created["versionLabel"] ??
+      created["VersionLabel"] ??
+      created["equationText"] ??
+      created["EquationText"] ??
+      null) as string | null,
+    effectiveFrom: (created["effectiveFrom"] ?? created["EffectiveFrom"] ?? null) as string | null,
+    effectiveTo: (created["effectiveTo"] ?? created["EffectiveTo"] ?? null) as string | null,
   };
 }
 
@@ -1642,13 +1701,18 @@ export async function updateEquationMaster(
   return {
     equationMasterId:
       pickId(updated, "equationMasterId", "EquationMasterId") || equationMasterId,
-    equationName: (updated["equationName"] ?? updated["EquationName"] ?? null) as
-      | string
-      | null,
-    equationText: (updated["equationText"] ?? updated["EquationText"] ?? null) as
-      | string
-      | null,
-    isActive: (updated["isActive"] ?? updated["IsActive"] ?? true) as boolean,
+    equationKey: (updated["equationKey"] ??
+      updated["EquationKey"] ??
+      updated["equationName"] ??
+      updated["EquationName"] ??
+      null) as string | null,
+    versionLabel: (updated["versionLabel"] ??
+      updated["VersionLabel"] ??
+      updated["equationText"] ??
+      updated["EquationText"] ??
+      null) as string | null,
+    effectiveFrom: (updated["effectiveFrom"] ?? updated["EffectiveFrom"] ?? null) as string | null,
+    effectiveTo: (updated["effectiveTo"] ?? updated["EffectiveTo"] ?? null) as string | null,
   };
 }
 
@@ -1680,10 +1744,10 @@ export async function createStatusCodeMaster(
 
   return {
     statusCodeId: pickId(created, "statusCodeId", "StatusCodeId"),
-    statusCode: (created["statusCode"] ?? created["StatusCode"] ?? null) as
-      | string
-      | null,
-    statusDescription: (created["statusDescription"] ??
+    statusCode: (created["statusCode"] ?? created["StatusCode"] ?? null) as string | null,
+    businessMeaning: (created["businessMeaning"] ??
+      created["BusinessMeaning"] ??
+      created["statusDescription"] ??
       created["StatusDescription"] ??
       null) as string | null,
     isActive: (created["isActive"] ?? created["IsActive"] ?? true) as boolean,
@@ -1704,10 +1768,10 @@ export async function updateStatusCodeMaster(
 
   return {
     statusCodeId: pickId(updated, "statusCodeId", "StatusCodeId") || statusCodeId,
-    statusCode: (updated["statusCode"] ?? updated["StatusCode"] ?? null) as
-      | string
-      | null,
-    statusDescription: (updated["statusDescription"] ??
+    statusCode: (updated["statusCode"] ?? updated["StatusCode"] ?? null) as string | null,
+    businessMeaning: (updated["businessMeaning"] ??
+      updated["BusinessMeaning"] ??
+      updated["statusDescription"] ??
       updated["StatusDescription"] ??
       null) as string | null,
     isActive: (updated["isActive"] ?? updated["IsActive"] ?? true) as boolean,
