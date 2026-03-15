@@ -1437,6 +1437,8 @@ export async function queryControlDeviceMasters(params?: {
         .map((r) => {
           // Accept camelCase, PascalCase, and snake_case (DB schema) shapes.
           // Some dev seeds/legacy serializers may return different casing.
+          // Some environments may return the primary key as `id` (generic) rather than `controlDeviceId`.
+          // Treat these as equivalent to keep the UI robust across serializers/seeds.
           const controlDeviceId = pickId(
             r,
             "controlDeviceId",
@@ -1444,6 +1446,8 @@ export async function queryControlDeviceMasters(params?: {
             "control_device_id",
             "controlDeviceID",
             "ControlDeviceID",
+            "id",
+            "Id",
           ).trim();
 
           const siteId = (r["siteId"] ?? r["SiteId"] ?? r["site_id"] ?? null) as
@@ -1456,6 +1460,9 @@ export async function queryControlDeviceMasters(params?: {
             // legacy fallbacks
             r["deviceTag"] ??
             r["DeviceTag"] ??
+            // other common variants
+            r["tag"] ??
+            r["Tag"] ??
             null) as string | null;
 
           const displayLabel = (r["displayLabel"] ??
@@ -1464,6 +1471,9 @@ export async function queryControlDeviceMasters(params?: {
             // legacy fallbacks
             r["deviceName"] ??
             r["DeviceName"] ??
+            // other common variants
+            r["name"] ??
+            r["Name"] ??
             null) as string | null;
 
           return {
