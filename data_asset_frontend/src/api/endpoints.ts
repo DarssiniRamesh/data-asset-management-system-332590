@@ -961,7 +961,12 @@ export async function updateParentInputMapping(
 
 type BackendEfSourceMappingDto = {
   efSourceMappingId?: BackendId;
-  efSourceId?: string | null;
+  efSourceSetOrTable?: string | null;
+  equationSetup?: string | null;
+  scalarValues?: string | null;
+  reportingProgramId?: number | null;
+
+  // Some deployments might include flags/audit in the payload
   isActive?: boolean;
   createdBy?: string | null;
   createdAt?: string | null;
@@ -969,7 +974,11 @@ type BackendEfSourceMappingDto = {
   modifiedAt?: string | null;
 
   EfSourceMappingId?: BackendId;
-  EfSourceId?: string | null;
+  EfSourceSetOrTable?: string | null;
+  EquationSetup?: string | null;
+  ScalarValues?: string | null;
+  ReportingProgramId?: number | null;
+
   IsActive?: boolean;
   CreatedBy?: string | null;
   CreatedAt?: string | null;
@@ -982,7 +991,13 @@ function mapEfSourceMappingFromBackend(
 ): EfSourceMappingDto {
   return {
     efSourceMappingId: toIdString(b.efSourceMappingId ?? b.EfSourceMappingId),
-    efSourceId: b.efSourceId ?? b.EfSourceId ?? null,
+
+    efSourceSetOrTable:
+      b.efSourceSetOrTable ?? b.EfSourceSetOrTable ?? null,
+    equationSetup: b.equationSetup ?? b.EquationSetup ?? null,
+    scalarValues: b.scalarValues ?? b.ScalarValues ?? null,
+    reportingProgramId: b.reportingProgramId ?? b.ReportingProgramId ?? null,
+
     isActive: b.isActive ?? b.IsActive ?? true,
     createdBy: b.createdBy ?? b.CreatedBy ?? null,
     createdAt: b.createdAt ?? b.CreatedAt ?? null,

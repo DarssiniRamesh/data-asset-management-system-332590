@@ -1,5 +1,9 @@
 import { useEffect, useMemo, useState } from "react";
-import { createEfSourceMapping, listEfSourceMappings, updateEfSourceMapping } from "../../../api/endpoints";
+import {
+  createEfSourceMapping,
+  listEfSourceMappings,
+  updateEfSourceMapping,
+} from "../../../api/endpoints";
 import type { EfSourceMappingDto } from "../../../api/types";
 import { DataTable, type Column } from "../../../components/DataTable";
 import { FormInput } from "../../../components/FormInput";
@@ -34,13 +38,26 @@ export function EfSourceMappingTab({ asset, caps }: AssetDetailsTabProps) {
   const [editing, setEditing] = useState<Row | null>(null);
   const [saving, setSaving] = useState(false);
 
-  const [form, setForm] = useState({ efSourceId: "", isActive: true });
-  const [banner, setBanner] = useState<{ title: string; message?: string } | null>(null);
+  // NOTE:
+  // ef_source_mapping table uses ef_source_set_or_table (NOT ef_source_id).
+  // This is the user-editable "EF Source (set/table)" that must never be blank.
+  const [form, setForm] = useState({
+    efSourceSetOrTable: "",
+    equationSetup: "",
+    scalarValues: "",
+    isActive: true, // UI-only (for now); backend currently ignores in this table.
+  });
+  const [banner, setBanner] = useState<{ title: string; message?: string } | null>(
+    null,
+  );
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 
   async function reload(): Promise<void> {
     if (!selectedInputParameterId) return;
-    const list = await listEfSourceMappings(asset.assetId, selectedInputParameterId);
+    const list = await listEfSourceMappings(
+      asset.assetId,
+      selectedInputParameterId,
+    );
     setRows(list);
   }
 
@@ -58,7 +75,10 @@ export function EfSourceMappingTab({ asset, caps }: AssetDetailsTabProps) {
       setLoading(true);
       setError(null);
       try {
-        const list = await listEfSourceMappings(asset.assetId, selectedInputParameterId);
+        const list = await listEfSourceMappings(
+          asset.assetId,
+          selectedInputParameterId,
+        );
         if (!mounted) return;
         setRows(list);
       } catch (e) {
@@ -77,7 +97,12 @@ export function EfSourceMappingTab({ asset, caps }: AssetDetailsTabProps) {
 
   function openCreate(): void {
     setEditing(null);
-    setForm({ efSourceId: "", isActive: true });
+    setForm({
+      efSourceSetOrTable: "",
+      equationSetup: "",
+      scalarValues: "",
+      isActive: true,
+    });
     setBanner(null);
     setFieldErrors({});
     setModalOpen(true);
@@ -85,7 +110,12 @@ export function EfSourceMappingTab({ asset, caps }: AssetDetailsTabProps) {
 
   function openEdit(r: Row): void {
     setEditing(r);
-    setForm({ efSourceId: r.efSourceId ?? "", isActive: r.isActive ?? true });
+    setForm({
+      efSourceSetOrTable: r.efSourceSetOrTable ?? "",
+      equationSetup: r.equationSetup ?? "",
+      scalarValues: r.scalarValues ?? "",
+      isActive: r.isActive ?? true,
+    });
     setBanner(null);
     setFieldErrors({});
     setModalOpen(true);
@@ -102,31 +132,48 @@ export function EfSourceMappingTab({ asset, caps }: AssetDetailsTabProps) {
     setBanner(null);
     setFieldErrors({});
 
-    const reqErrors = validateRequiredStrings({ efSourceId: form.efSourceId });
+    // Frontend validation (fast feedback)
+    const reqErrors = validateRequiredStrings({
+      efSourceSetOrTable: form.efSourceSetOrTable,
+    });
     if (Object.keys(reqErrors).length > 0) {
       setFieldErrors(reqErrors);
-      setBanner({ title: "Validation failed", message: "Please correct the highlighted fields." });
+      setBanner({
+        title: "Validation failed",
+        message: "Please correct the highlighted fields.",
+      });
       return;
     }
 
     setSaving(true);
     try {
       const correlationId = crypto.randomUUID();
+
+      const payload = {
+        efSourceSetOrTable: form.efSourceSetOrTable.trim(),
+        equationSetup: form.equationSetup.trim() ? form.equationSetup.trim() : null,
+        scalarValues: form.scalarValues.trim() ? form.scalarValues.trim() : null,
+        // reportingProgramId is optional; backend derives it when omitted.
+      };
+
       if (!editing) {
         await createEfSourceMapping(asset.assetId, selectedInputParameterId, {
-          efSourceId: form.efSourceId.trim(),
-          isActive: form.isActive,
+          ...payload,
           createdBy: user.username,
           correlationId,
         });
         pushToast({ type: "success", title: "EF source mapping created" });
       } else {
-        await updateEfSourceMapping(asset.assetId, selectedInputParameterId, editing.efSourceMappingId, {
-          efSourceId: form.efSourceId.trim(),
-          isActive: form.isActive,
-          modifiedBy: user.username,
-          correlationId,
-        });
+        await updateEfSourceMapping(
+          asset.assetId,
+          selectedInputParameterId,
+          editing.efSourceMappingId,
+          {
+            ...payload,
+            modifiedBy: user.username,
+            correlationId,
+          },
+        );
         pushToast({ type: "success", title: "EF source mapping updated" });
       }
 
@@ -143,19 +190,47 @@ export function EfSourceMappingTab({ asset, caps }: AssetDetailsTabProps) {
 
   const columns: Column<Row>[] = useMemo(
     () => [
-      { key: "efSourceId", header: "EF Source ID", render: (r) => <span className="font-mono text-xs">{r.efSourceId ?? "-"}</span> },
-      { key: "active", header: "Active", render: (r) => <span className="text-sm">{(r.isActive ?? true) ? "Yes" : "No"}</span> },
+      {
+        key: "efSourceSetOrTable",
+        header: "EF Source (set/table)",
+        render: (r) => (
+          <span className="font-mono text-xs">{r.efSourceSetOrTable ?? "-"}</span>
+        ),
+      },
+      {
+        key: "equationSetup",
+        header: "Equation Setup",
+        render: (r) => (
+          <span className="text-sm">{r.equationSetup?.trim() || "-"}</span>
+        ),
+      },
+      {
+        key: "scalarValues",
+        header: "Scalar Values",
+        render: (r) => (
+          <span className="text-sm">{r.scalarValues?.trim() || "-"}</span>
+        ),
+      },
       {
         key: "actions",
         header: "",
         widthClassName: "w-28",
         render: (r) =>
           caps.canEdit ? (
-            <button type="button" className="btn-ghost" onClick={() => openEdit(r)}>
+            <button
+              type="button"
+              className="btn-ghost"
+              onClick={() => openEdit(r)}
+            >
               Edit
             </button>
           ) : (
-            <button type="button" className="btn-ghost opacity-60" disabled title="Edit requires Editor or Admin role">
+            <button
+              type="button"
+              className="btn-ghost opacity-60"
+              disabled
+              title="Edit requires Editor or Admin role"
+            >
               Edit
             </button>
           ),
@@ -168,11 +243,14 @@ export function EfSourceMappingTab({ asset, caps }: AssetDetailsTabProps) {
     return (
       <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-soft dark:border-slate-800 dark:bg-slate-950">
         <div className="text-sm font-semibold">EF Source Mapping</div>
-        <div className="muted mt-1">Configure EF source mapping for the selected input parameter.</div>
+        <div className="muted mt-1">
+          Configure EF source mapping for the selected input parameter.
+        </div>
 
         <div className="mt-4 rounded-2xl bg-amber-50 p-4 text-sm text-amber-900 dark:bg-amber-950/30 dark:text-amber-100">
-          Select an input parameter in <span className="font-semibold">Associated Input Parameters</span> to configure EF
-          Source Mapping.
+          Select an input parameter in{" "}
+          <span className="font-semibold">Associated Input Parameters</span> to
+          configure EF Source Mapping.
         </div>
       </div>
     );
@@ -191,7 +269,11 @@ export function EfSourceMappingTab({ asset, caps }: AssetDetailsTabProps) {
         emptyActions={
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div className="text-xs opacity-80">
-              Next step: add an EF Source ID for InputParameterId <span className="font-mono font-semibold">{selectedInputParameterId}</span>.
+              Next step: add an EF Source (set/table) for InputParameterId{" "}
+              <span className="font-mono font-semibold">
+                {selectedInputParameterId}
+              </span>
+              .
             </div>
             {caps.canCreate ? (
               <button type="button" className="btn-primary" onClick={openCreate}>
@@ -220,7 +302,12 @@ export function EfSourceMappingTab({ asset, caps }: AssetDetailsTabProps) {
             createLabel="Create EF Mapping"
           />
 
-          <DataTable<Row> columns={columns} rows={rows} rowKey={(r) => r.efSourceMappingId} emptyLabel="No EF source mappings." />
+          <DataTable<Row>
+            columns={columns}
+            rows={rows}
+            rowKey={(r) => r.efSourceMappingId}
+            emptyLabel="No EF source mappings."
+          />
         </div>
       </TabStatePanel>
 
@@ -230,10 +317,20 @@ export function EfSourceMappingTab({ asset, caps }: AssetDetailsTabProps) {
         onClose={() => (saving ? null : setModalOpen(false))}
         footer={
           <>
-            <button className="btn-ghost" type="button" onClick={() => setModalOpen(false)} disabled={saving}>
+            <button
+              className="btn-ghost"
+              type="button"
+              onClick={() => setModalOpen(false)}
+              disabled={saving}
+            >
               Cancel
             </button>
-            <button className="btn-primary" type="button" onClick={onSave} disabled={saving}>
+            <button
+              className="btn-primary"
+              type="button"
+              onClick={onSave}
+              disabled={saving}
+            >
               {saving ? "Saving..." : "Save"}
             </button>
           </>
@@ -248,15 +345,25 @@ export function EfSourceMappingTab({ asset, caps }: AssetDetailsTabProps) {
 
         <div className="space-y-3">
           <FormInput
-            label="EF Source ID"
-            value={form.efSourceId}
-            onChange={(v) => setForm((s) => ({ ...s, efSourceId: v }))}
-            error={fieldErrors.efSourceId}
+            label="EF Source (set/table)"
+            value={form.efSourceSetOrTable}
+            onChange={(v) => setForm((s) => ({ ...s, efSourceSetOrTable: v }))}
+            error={fieldErrors.efSourceSetOrTable}
           />
-          <label className="flex items-center gap-2 text-sm">
-            <input type="checkbox" checked={form.isActive} onChange={(e) => setForm((s) => ({ ...s, isActive: e.target.checked }))} />
-            Active
-          </label>
+
+          <FormInput
+            label="Equation Setup"
+            value={form.equationSetup}
+            onChange={(v) => setForm((s) => ({ ...s, equationSetup: v }))}
+            error={fieldErrors.equationSetup}
+          />
+
+          <FormInput
+            label="Scalar Values"
+            value={form.scalarValues}
+            onChange={(v) => setForm((s) => ({ ...s, scalarValues: v }))}
+            error={fieldErrors.scalarValues}
+          />
         </div>
       </Modal>
     </div>

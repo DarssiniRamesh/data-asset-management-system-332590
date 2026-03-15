@@ -422,8 +422,19 @@ export type UpdateParentInputMappingRequest = {
 
 export type EfSourceMappingDto = {
   efSourceMappingId: string;
-  efSourceId?: string | null;
+
+  /** Backend: ef_source_set_or_table (TEXT NOT NULL) */
+  efSourceSetOrTable?: string | null;
+
+  equationSetup?: string | null;
+  scalarValues?: string | null;
+
+  /** Optional on create/update; backend derives from parent input_parameter when omitted */
+  reportingProgramId?: number | null;
+
+  // Kept as optional flags for UI consistency; backend may ignore for this table depending on implementation.
   isActive?: boolean;
+
   createdBy?: string | null;
   createdAt?: string | null;
   modifiedBy?: string | null;
@@ -431,15 +442,23 @@ export type EfSourceMappingDto = {
 };
 
 export type CreateEfSourceMappingRequest = {
-  efSourceId: string;
-  isActive?: boolean;
+  efSourceSetOrTable: string;
+
+  equationSetup?: string | null;
+  scalarValues?: string | null;
+  reportingProgramId?: number | null;
+
   createdBy: string;
   correlationId: string;
 };
 
 export type UpdateEfSourceMappingRequest = {
-  efSourceId: string;
-  isActive?: boolean;
+  efSourceSetOrTable: string;
+
+  equationSetup?: string | null;
+  scalarValues?: string | null;
+  reportingProgramId?: number | null;
+
   modifiedBy: string;
   correlationId: string;
 };
