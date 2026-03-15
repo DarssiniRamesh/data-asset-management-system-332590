@@ -1430,19 +1430,25 @@ export async function queryControlDeviceMasters(params?: {
 
   const mapped = Array.isArray(rows)
     ? rows.map((r) => ({
-        controlDeviceId: pickId(r, "controlDeviceId", "ControlDeviceId"),
-        siteId: (r["siteId"] ?? r["SiteId"] ?? null) as string | null,
+        // Accept camelCase, PascalCase, and snake_case (DB schema) shapes.
+        // Required for environments that expose DB-shaped JSON or different serializers.
+        controlDeviceId: pickId(r, "controlDeviceId", "ControlDeviceId", "control_device_id", "controlDeviceID"),
+        siteId: (r["siteId"] ?? r["SiteId"] ?? r["site_id"] ?? null) as string | null,
         deviceKey: (r["deviceKey"] ??
           r["DeviceKey"] ??
+          r["device_key"] ??
+          // legacy fallbacks (older UI/backends)
           r["deviceTag"] ??
           r["DeviceTag"] ??
           null) as string | null,
         displayLabel: (r["displayLabel"] ??
           r["DisplayLabel"] ??
+          r["display_label"] ??
+          // legacy fallbacks
           r["deviceName"] ??
           r["DeviceName"] ??
           null) as string | null,
-        isActive: (r["isActive"] ?? r["IsActive"] ?? true) as boolean,
+        isActive: (r["isActive"] ?? r["IsActive"] ?? r["is_active"] ?? true) as boolean,
       }))
     : [];
 
