@@ -1379,11 +1379,15 @@ export async function queryControlDeviceMasters(params?: {
 }): Promise<ControlDeviceMasterDto[]> {
   /** ControlDeviceMastersQuery (canonical flow)
    * Inputs:
-   *  - siteId?: string (optional; will be normalized via trim; empty becomes undefined)
+   *  - siteId?: string (optional; normalized via trim; empty becomes undefined)
    *  - activeOnly?: boolean
    *  - limit?: number
    * Output:
    *  - ControlDeviceMasterDto[]
+   * Errors:
+   *  - Throws ApiError (from apiRequest) on non-2xx
+   * Side effects:
+   *  - Network call to GET /api/masters/control-devices
    * Observability:
    *  - Debug logs contain normalized params + returned count.
    */
@@ -1396,18 +1400,18 @@ export async function queryControlDeviceMasters(params?: {
       : undefined;
 
   // IMPORTANT:
-  // The backend OpenAPI uses `siteId` (lower camelCase). However, some deployments/binders
-  // are configured in a way where query-key casing can matter (or have legacy expectations).
-  // To be resilient, we send BOTH `siteId` and `SiteId` with the same value when provided.
+  // OpenAPI uses `siteId` (lower camelCase). In practice, some environments are sensitive to query-key casing
+  // (legacy binders / proxies). To be resilient, send BOTH `siteId` and `SiteId` when a value is provided.
   if (normalizedSiteId) {
     qs.set("siteId", normalizedSiteId);
     qs.set("SiteId", normalizedSiteId);
   }
 
+  // OpenAPI for this endpoint uses `ActiveOnly` (PascalCase A/O). Use that canonical key.
   if (params?.activeOnly !== undefined)
     qs.set("ActiveOnly", String(params.activeOnly));
 
-  // OpenAPI uses `Limit`, but keep behavior consistent across environments by always using `Limit`.
+  // OpenAPI uses `Limit` (PascalCase). Use that canonical key.
   if (params?.limit !== undefined) qs.set("Limit", String(params.limit));
 
   const suffix = qs.toString() ? `?${qs.toString()}` : "";
@@ -1432,13 +1436,7 @@ export async function queryControlDeviceMasters(params?: {
     ? rows
         .map((r) => {
           // Accept camelCase, PascalCase, and snake_case (DB schema) shapes.
-          // Required for environments that expose DB-shaped JSON or different serializers.
-          //
-          // NOTE:
-          // The dropdown requires that:
-          //  - every option has a non-empty string value
-          //  - the option value matches the mapping row.controlDeviceId (stringified) for edit/persist
-          // So we aggressively normalize IDs here.
+          // Some dev seeds/legacy serializers may return different casing.
           const controlDeviceId = pickId(
             r,
             "controlDeviceId",
@@ -1448,27 +1446,35 @@ export async function queryControlDeviceMasters(params?: {
             "ControlDeviceID",
           ).trim();
 
+          const siteId = (r["siteId"] ?? r["SiteId"] ?? r["site_id"] ?? null) as
+            | string
+            | null;
+
+          const deviceKey = (r["deviceKey"] ??
+            r["DeviceKey"] ??
+            r["device_key"] ??
+            // legacy fallbacks
+            r["deviceTag"] ??
+            r["DeviceTag"] ??
+            null) as string | null;
+
+          const displayLabel = (r["displayLabel"] ??
+            r["DisplayLabel"] ??
+            r["display_label"] ??
+            // legacy fallbacks
+            r["deviceName"] ??
+            r["DeviceName"] ??
+            null) as string | null;
+
           return {
             controlDeviceId,
-            siteId: (r["siteId"] ?? r["SiteId"] ?? r["site_id"] ?? null) as string | null,
-            deviceKey: (r["deviceKey"] ??
-              r["DeviceKey"] ??
-              r["device_key"] ??
-              // legacy fallbacks (older UI/backends)
-              r["deviceTag"] ??
-              r["DeviceTag"] ??
-              null) as string | null,
-            displayLabel: (r["displayLabel"] ??
-              r["DisplayLabel"] ??
-              r["display_label"] ??
-              // legacy fallbacks
-              r["deviceName"] ??
-              r["DeviceName"] ??
-              null) as string | null,
+            siteId,
+            deviceKey,
+            displayLabel,
             isActive: (r["isActive"] ?? r["IsActive"] ?? r["is_active"] ?? true) as boolean,
           };
         })
-        // Drop rows that don't have a usable id; prevents blank dropdown items and value mismatch issues.
+        // Drop rows without usable IDs; prevents blank dropdown items and value mismatch issues.
         .filter((r) => Boolean(r.controlDeviceId))
     : [];
 
