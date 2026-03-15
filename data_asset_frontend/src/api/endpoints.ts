@@ -1363,9 +1363,21 @@ export async function queryControlDeviceMasters(params?: {
   limit?: number;
 }): Promise<ControlDeviceMasterDto[]> {
   const qs = new URLSearchParams();
-  if (params?.siteId) qs.set("siteId", params.siteId);
+
+  // IMPORTANT:
+  // The backend OpenAPI uses `siteId` (lower camelCase). However, some deployments/binders
+  // are configured in a way where query-key casing can matter (or have legacy expectations).
+  // To be resilient, we send BOTH `siteId` and `SiteId` with the same value when provided.
+  if (params?.siteId) {
+    qs.set("siteId", params.siteId);
+    qs.set("SiteId", params.siteId);
+  }
+
   if (params?.activeOnly !== undefined) qs.set("ActiveOnly", String(params.activeOnly));
+
+  // OpenAPI uses `Limit`, but keep behavior consistent across environments by always using `Limit`.
   if (params?.limit !== undefined) qs.set("Limit", String(params.limit));
+
   const suffix = qs.toString() ? `?${qs.toString()}` : "";
 
   const rows = await apiRequest<BackendMasterBase[]>({
