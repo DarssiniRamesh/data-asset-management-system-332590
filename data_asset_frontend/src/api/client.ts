@@ -25,6 +25,12 @@ type RequestOptions = {
   body?: unknown;
   signal?: AbortSignal;
   headers?: Record<string, string>;
+  /**
+   * When true (default), include Authorization header if a token exists.
+   * Some deployments/proxies have incomplete CORS allowlists for Authorization,
+   * which can cause the browser to perform a preflight and then block the actual request.
+   */
+  auth?: boolean;
 };
 
 async function readTextSafe(res: Response): Promise<string> {
@@ -55,11 +61,21 @@ export async function apiRequest<T>(opts: RequestOptions): Promise<T> {
 
   const token = getStoredToken();
   const headers = new Headers();
-  headers.set("Content-Type", "application/json");
+
+  // Only set Content-Type when we actually send a JSON body.
+  // Setting it on GET triggers a CORS preflight on cross-origin calls, and some
+  // environments only partially support the required Access-Control-Allow-Headers.
+  const hasBody = opts.body !== undefined;
+  if (hasBody) headers.set("Content-Type", "application/json");
+
   if (opts.headers) {
     for (const [k, v] of Object.entries(opts.headers)) headers.set(k, v);
   }
-  if (token) headers.set("Authorization", `Bearer ${token}`);
+
+  // Default to including auth, but allow opt-out for endpoints that are public
+  // or where CORS preflight blocks reads in certain environments.
+  const useAuth = opts.auth !== false;
+  if (useAuth && token) headers.set("Authorization", `Bearer ${token}`);
 
   logger.debug("apiRequest:start", { method: opts.method, url });
 
