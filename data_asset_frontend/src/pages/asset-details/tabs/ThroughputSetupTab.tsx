@@ -488,7 +488,9 @@ export function ThroughputSetupTab({ asset, caps }: AssetDetailsTabProps) {
             value={eqForm.equationMasterId}
             onChange={(v) => setEqForm((s) => ({ ...s, equationMasterId: v }))}
             options={equations.map((e) => ({
-              value: e.equationMasterId,
+              // FormSelect option values must be strings; otherwise selection can silently fail,
+              // leading to missing/invalid master IDs in create/update payloads.
+              value: String(e.equationMasterId),
               label: (e.equationKey || e.versionLabel || e.equationMasterId) as string,
             }))}
             error={eqFieldErrors.equationMasterId}
@@ -573,7 +575,7 @@ export function ThroughputSetupTab({ asset, caps }: AssetDetailsTabProps) {
                   value={scalarForm.uomId}
                   onChange={(v) => setScalarForm((s) => ({ ...s, uomId: v }))}
                   options={uoms.map((u) => ({
-                    value: u.uomId,
+                    value: String(u.uomId),
                     label: `${u.uomKey ? `${u.uomKey} — ` : ""}${(u.displayLabel || u.uomId) as string}`,
                   }))}
                   placeholder="—"
