@@ -17,14 +17,15 @@ import { TabStatePanel } from "../TabStatePanel";
 import { AuthRequiredPanel, shouldShowAuthRequired } from "../AuthRequiredPanel";
 import { CrudActionBar } from "../crud/CrudActionBar";
 import { extractErrors, requireInt } from "../crud/crudFormUtils";
+import {
+  buildControlDeviceIndex,
+  buildControlDeviceOptions,
+  getControlDeviceDisplayForMapping,
+  validateControlDeviceMappingForm,
+  type ControlDeviceMappingFormState,
+} from "./controlDevicesFlow";
 
 type Row = ControlDeviceMappingDto;
-
-function buildDeviceIndex(masters: ControlDeviceMasterDto[]): Map<string, ControlDeviceMasterDto> {
-  const m = new Map<string, ControlDeviceMasterDto>();
-  for (const d of masters) m.set(d.controlDeviceId, d);
-  return m;
-}
 
 // PUBLIC_INTERFACE
 export function ControlDevicesTab({ asset, caps }: AssetDetailsTabProps) {
@@ -34,6 +35,11 @@ export function ControlDevicesTab({ asset, caps }: AssetDetailsTabProps) {
    *  - PUT /api/assets/{assetId}/control-device-mappings/{controlDeviceMappingId}
    * Masters:
    *  - GET /api/masters/control-devices?siteId={siteId}
+   *
+   * Contract (tab behavior):
+   * - Loads master data + existing mappings on mount and on asset change.
+   * - Allows create/edit only when caps permit it (RBAC handled by caller via caps).
+   * - Validates required fields before save; surfaces backend validation errors via extractErrors.
    */
   const { user } = useAuth();
   const { pushToast } = useToasts();
@@ -47,11 +53,16 @@ export function ControlDevicesTab({ asset, caps }: AssetDetailsTabProps) {
   const [editing, setEditing] = useState<Row | null>(null);
   const [saving, setSaving] = useState(false);
 
-  const [form, setForm] = useState({ controlDeviceId: "", controlDeviceTag: "", isActive: true });
+  const [form, setForm] = useState<ControlDeviceMappingFormState>({
+    controlDeviceId: "",
+    controlDeviceTag: "",
+    isActive: true,
+  });
+
   const [banner, setBanner] = useState<{ title: string; message?: string } | null>(null);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 
-  async function reload(): Promise<void> {
+  async function reloadMappings(): Promise<void> {
     const list = await listControlDeviceMappings(asset.assetId);
     setRows(list);
   }
@@ -66,9 +77,9 @@ export function ControlDevicesTab({ asset, caps }: AssetDetailsTabProps) {
       try {
         const [mappings, devices] = await Promise.all([
           listControlDeviceMappings(asset.assetId),
+          // IMPORTANT:
           // Do not hard-filter to ActiveOnly=true here; some environments have master rows present but not flagged active yet,
-          // which causes an empty dropdown and blocks mapping creation.
-          // The backend still returns `isActive` so the UI can display/validate if needed.
+          // which causes an empty dropdown and blocks mapping creation/editing.
           queryControlDeviceMasters({ siteId: asset.siteId, limit: 1000 }),
         ]);
 
@@ -89,7 +100,8 @@ export function ControlDevicesTab({ asset, caps }: AssetDetailsTabProps) {
     };
   }, [asset.assetId, asset.siteId]);
 
-  const deviceIndex = useMemo(() => buildDeviceIndex(masters), [masters]);
+  const deviceIndex = useMemo(() => buildControlDeviceIndex(masters), [masters]);
+  const masterOptions = useMemo(() => buildControlDeviceOptions(masters), [masters]);
 
   function openCreate(): void {
     setEditing(null);
@@ -120,6 +132,21 @@ export function ControlDevicesTab({ asset, caps }: AssetDetailsTabProps) {
     setBanner(null);
     setFieldErrors({});
 
+    const validation = validateControlDeviceMappingForm({
+      form,
+      deviceIndex,
+      mode: editing ? "edit" : "create",
+    });
+
+    if (!validation.isValid) {
+      setFieldErrors(validation.fieldErrors);
+      setBanner(validation.banner ?? { title: "Validation failed" });
+      return;
+    }
+
+    // Non-blocking warning (e.g. inactive master)
+    if (validation.banner) setBanner(validation.banner);
+
     const cd = requireInt(form.controlDeviceId, "Control Device");
     if (cd.error || cd.value === null) {
       setFieldErrors({ controlDeviceId: cd.error || "Required" });
@@ -130,6 +157,7 @@ export function ControlDevicesTab({ asset, caps }: AssetDetailsTabProps) {
     setSaving(true);
     try {
       const correlationId = crypto.randomUUID();
+
       if (!editing) {
         await createControlDeviceMapping(asset.assetId, {
           controlDeviceId: cd.value,
@@ -150,7 +178,7 @@ export function ControlDevicesTab({ asset, caps }: AssetDetailsTabProps) {
         pushToast({ type: "success", title: "Control device mapping updated" });
       }
 
-      await reload();
+      await reloadMappings();
       setModalOpen(false);
     } catch (e) {
       const ex = extractErrors(e);
@@ -167,15 +195,12 @@ export function ControlDevicesTab({ asset, caps }: AssetDetailsTabProps) {
         key: "device",
         header: "Control Device",
         render: (r) => {
-          const id = r.controlDeviceId ?? null;
-          const master = id !== null ? deviceIndex.get(String(id)) : undefined;
+          const display = getControlDeviceDisplayForMapping({ row: r, deviceIndex });
           return (
             <div>
-              <div className="text-sm font-semibold">
-                {master?.displayLabel ?? master?.deviceKey ?? "Unknown device"}
-              </div>
+              <div className="text-sm font-semibold">{display.primaryLabel}</div>
               <div className="muted text-xs">
-                ID: <span className="font-mono">{id ?? "-"}</span>
+                <span className="font-mono">{display.secondaryLabel}</span>
               </div>
             </div>
           );
@@ -219,19 +244,15 @@ export function ControlDevicesTab({ asset, caps }: AssetDetailsTabProps) {
         emptyActions={
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div className="text-xs opacity-80">
-              Next step: map one or more site control devices to this asset so downstream configuration can reference them.
+              Next step: Create control devices in <span className="font-semibold">Masters → Control Devices</span>, then map one or more
+              to this asset here.
             </div>
             {caps.canCreate ? (
               <button type="button" className="btn-primary" onClick={openCreate}>
                 Create Mapping
               </button>
             ) : (
-              <button
-                type="button"
-                className="btn-primary opacity-60"
-                disabled
-                title="Create requires Editor or Admin role"
-              >
+              <button type="button" className="btn-primary opacity-60" disabled title="Create requires Editor or Admin role">
                 Create Mapping
               </button>
             )}
@@ -279,20 +300,17 @@ export function ControlDevicesTab({ asset, caps }: AssetDetailsTabProps) {
             label="Control Device"
             value={form.controlDeviceId}
             onChange={(v) => setForm((s) => ({ ...s, controlDeviceId: v }))}
-            options={masters.map((d) => {
-              const base = (d.displayLabel || d.deviceKey || d.controlDeviceId) as string;
-              const suffix = d.isActive === false ? " (inactive)" : "";
-              return {
-                value: d.controlDeviceId,
-                label: `${base}${suffix}`,
-              };
-            })}
+            options={masterOptions}
             error={fieldErrors.controlDeviceId}
             placeholder="Select…"
             helpText={
-              masters.length === 0
-                ? "No active control devices were returned for this site. Check master data setup."
-                : null
+              masters.length === 0 ? (
+                <>
+                  No control devices were returned for this site.
+                  <br />
+                  Create them in <span className="font-semibold">Masters → Control Devices</span>, or verify the asset’s Site ID.
+                </>
+              ) : null
             }
           />
 
@@ -304,11 +322,7 @@ export function ControlDevicesTab({ asset, caps }: AssetDetailsTabProps) {
           />
 
           <label className="flex items-center gap-2 text-sm">
-            <input
-              type="checkbox"
-              checked={form.isActive}
-              onChange={(e) => setForm((s) => ({ ...s, isActive: e.target.checked }))}
-            />
+            <input type="checkbox" checked={form.isActive} onChange={(e) => setForm((s) => ({ ...s, isActive: e.target.checked }))} />
             Active
           </label>
         </div>
