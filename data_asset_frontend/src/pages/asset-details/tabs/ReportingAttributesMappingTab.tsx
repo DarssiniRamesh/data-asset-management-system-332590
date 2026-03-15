@@ -191,8 +191,12 @@ export function ReportingAttributesMappingTab({ asset, caps }: AssetDetailsTabPr
           const p = id !== null ? programIndex.get(String(id)) : undefined;
           return (
             <div>
-              <div className="text-sm font-semibold">{p?.programName ?? "Unknown program"}</div>
-              <div className="muted text-xs">ID: <span className="font-mono">{id ?? "-"}</span></div>
+              <div className="text-sm font-semibold">
+                {p?.displayLabel ?? p?.programKey ?? "Unknown program"}
+              </div>
+              <div className="muted text-xs">
+                ID: <span className="font-mono">{id ?? "-"}</span>
+              </div>
             </div>
           );
         },
@@ -281,7 +285,7 @@ export function ReportingAttributesMappingTab({ asset, caps }: AssetDetailsTabPr
               <option value="">Select…</option>
               {programs.map((p) => (
                 <option key={p.reportingProgramId} value={p.reportingProgramId}>
-                  {p.programName || p.reportingProgramId}
+                  {p.displayLabel || p.programKey || p.reportingProgramId}
                 </option>
               ))}
             </select>

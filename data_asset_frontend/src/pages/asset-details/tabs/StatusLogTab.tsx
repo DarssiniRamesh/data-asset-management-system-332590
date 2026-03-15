@@ -179,8 +179,12 @@ export function StatusLogTab({ asset, caps }: AssetDetailsTabProps) {
           const s = id ? statusCodeIndex.get(id) : undefined;
           return (
             <div>
-              <div className="text-sm font-semibold">{s?.statusDescription ?? s?.statusCode ?? "Unknown"}</div>
-              <div className="muted text-xs">StatusCodeId: <span className="font-mono">{id || "-"}</span></div>
+              <div className="text-sm font-semibold">
+                {s?.businessMeaning ?? s?.statusCode ?? "Unknown"}
+              </div>
+              <div className="muted text-xs">
+                StatusCodeId: <span className="font-mono">{id || "-"}</span>
+              </div>
             </div>
           );
         },
@@ -269,7 +273,8 @@ export function StatusLogTab({ asset, caps }: AssetDetailsTabProps) {
               <option value="">Select…</option>
               {statusCodes.map((s) => (
                 <option key={s.statusCodeId} value={s.statusCodeId}>
-                  {s.statusCode ? `${s.statusCode} — ` : ""}{s.statusDescription || s.statusCodeId}
+                  {s.statusCode ? `${s.statusCode} — ` : ""}
+                  {s.businessMeaning || s.statusCodeId}
                 </option>
               ))}
             </select>

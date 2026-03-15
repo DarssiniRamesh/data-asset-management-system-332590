@@ -325,8 +325,12 @@ export function ThroughputSetupTab({ asset, caps }: AssetDetailsTabProps) {
           const master = id !== null ? equationIndex.get(String(id)) : undefined;
           return (
             <div>
-              <div className="text-sm font-semibold">{master?.equationName ?? "Unknown equation"}</div>
-              <div className="muted text-xs">Master ID: <span className="font-mono">{id ?? "-"}</span></div>
+              <div className="text-sm font-semibold">
+                {master?.equationKey ?? master?.versionLabel ?? "Unknown equation"}
+              </div>
+              <div className="muted text-xs">
+                Master ID: <span className="font-mono">{id ?? "-"}</span>
+              </div>
             </div>
           );
         },
@@ -368,7 +372,7 @@ export function ThroughputSetupTab({ asset, caps }: AssetDetailsTabProps) {
         render: (r) => {
           const id = r.uomId !== null && r.uomId !== undefined ? String(r.uomId) : "";
           const u = id ? uomIndex.get(id) : undefined;
-          return <span className="text-sm">{u?.uomCode ?? u?.uomName ?? (id || "-")}</span>;
+          return <span className="text-sm">{u?.uomKey ?? u?.displayLabel ?? (id || "-")}</span>;
         },
       },
       { key: "active", header: "Active", render: (r) => <span className="text-sm">{(r.isActive ?? true) ? "Yes" : "No"}</span> },
@@ -485,7 +489,7 @@ export function ThroughputSetupTab({ asset, caps }: AssetDetailsTabProps) {
             onChange={(v) => setEqForm((s) => ({ ...s, equationMasterId: v }))}
             options={equations.map((e) => ({
               value: e.equationMasterId,
-              label: (e.equationName || e.equationMasterId) as string,
+              label: (e.equationKey || e.versionLabel || e.equationMasterId) as string,
             }))}
             error={eqFieldErrors.equationMasterId}
             placeholder="Select…"
@@ -570,7 +574,7 @@ export function ThroughputSetupTab({ asset, caps }: AssetDetailsTabProps) {
                   onChange={(v) => setScalarForm((s) => ({ ...s, uomId: v }))}
                   options={uoms.map((u) => ({
                     value: u.uomId,
-                    label: `${u.uomCode ? `${u.uomCode} — ` : ""}${(u.uomName || u.uomId) as string}`,
+                    label: `${u.uomKey ? `${u.uomKey} — ` : ""}${(u.displayLabel || u.uomId) as string}`,
                   }))}
                   placeholder="—"
                   helpText={

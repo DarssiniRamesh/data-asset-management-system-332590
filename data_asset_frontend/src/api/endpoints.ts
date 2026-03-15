@@ -1577,7 +1577,8 @@ export async function disableReportingProgramMaster(
   correlationId: string,
 ): Promise<ReportingProgramMasterDto> {
   return updateReportingProgramMaster(reportingProgramId, {
-    programName: "",
+    programKey: "",
+    displayLabel: "",
     isActive: false,
     modifiedBy,
     correlationId,
@@ -1650,8 +1651,8 @@ export async function disableControlDeviceMaster(
 ): Promise<ControlDeviceMasterDto> {
   return updateControlDeviceMaster(controlDeviceId, {
     siteId: "",
-    deviceName: "",
-    deviceTag: "",
+    deviceKey: "",
+    displayLabel: "",
     isActive: false,
     modifiedBy,
     correlationId,
@@ -1723,9 +1724,10 @@ export async function disableEquationMaster(
   correlationId: string,
 ): Promise<EquationMasterDto> {
   return updateEquationMaster(equationMasterId, {
-    equationName: "",
-    equationText: "",
-    isActive: false,
+    equationKey: "",
+    versionLabel: "",
+    effectiveFrom: null,
+    effectiveTo: null,
     modifiedBy,
     correlationId,
   });
@@ -1786,7 +1788,7 @@ export async function disableStatusCodeMaster(
 ): Promise<StatusCodeMasterDto> {
   return updateStatusCodeMaster(statusCodeId, {
     statusCode: "",
-    statusDescription: "",
+    businessMeaning: "",
     isActive: false,
     modifiedBy,
     correlationId,

@@ -168,8 +168,12 @@ export function ControlDevicesTab({ asset, caps }: AssetDetailsTabProps) {
           const master = id !== null ? deviceIndex.get(String(id)) : undefined;
           return (
             <div>
-              <div className="text-sm font-semibold">{master?.deviceName ?? master?.deviceTag ?? "Unknown device"}</div>
-              <div className="muted text-xs">ID: <span className="font-mono">{id ?? "-"}</span></div>
+              <div className="text-sm font-semibold">
+                {master?.displayLabel ?? master?.deviceKey ?? "Unknown device"}
+              </div>
+              <div className="muted text-xs">
+                ID: <span className="font-mono">{id ?? "-"}</span>
+              </div>
             </div>
           );
         },
@@ -274,7 +278,7 @@ export function ControlDevicesTab({ asset, caps }: AssetDetailsTabProps) {
             onChange={(v) => setForm((s) => ({ ...s, controlDeviceId: v }))}
             options={masters.map((d) => ({
               value: d.controlDeviceId,
-              label: (d.deviceName || d.deviceTag || d.controlDeviceId) as string,
+              label: (d.displayLabel || d.deviceKey || d.controlDeviceId) as string,
             }))}
             error={fieldErrors.controlDeviceId}
             placeholder="Select…"

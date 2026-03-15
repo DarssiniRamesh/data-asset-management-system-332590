@@ -250,7 +250,7 @@ export function InputParametersTab({ asset, caps }: AssetDetailsTabProps) {
         render: (r) => {
           const id = r.uomId !== null && r.uomId !== undefined ? String(r.uomId) : "";
           const u = id ? uomIndex.get(id) : undefined;
-          return <span className="text-sm">{u?.uomCode ?? u?.uomName ?? (id || "-")}</span>;
+          return <span className="text-sm">{u?.uomKey ?? u?.displayLabel ?? (id || "-")}</span>;
         },
       },
       { key: "active", header: "Active", render: (r) => <span className="text-sm">{(r.isActive ?? true) ? "Yes" : "No"}</span> },
@@ -354,7 +354,7 @@ export function InputParametersTab({ asset, caps }: AssetDetailsTabProps) {
             onChange={(v) => setForm((s) => ({ ...s, uomId: v }))}
             options={uoms.map((u) => ({
               value: u.uomId,
-              label: `${u.uomCode ? `${u.uomCode} — ` : ""}${(u.uomName || u.uomId) as string}`,
+              label: `${u.uomKey ? `${u.uomKey} — ` : ""}${(u.displayLabel || u.uomId) as string}`,
             }))}
             error={fieldErrors.uomId}
             placeholder="—"
@@ -367,7 +367,7 @@ export function InputParametersTab({ asset, caps }: AssetDetailsTabProps) {
             onChange={(v) => setForm((s) => ({ ...s, reportingProgramId: v }))}
             options={programs.map((p) => ({
               value: p.reportingProgramId,
-              label: (p.programName || p.reportingProgramId) as string,
+              label: (p.displayLabel || p.programKey || p.reportingProgramId) as string,
             }))}
             error={fieldErrors.reportingProgramId}
             placeholder="—"
