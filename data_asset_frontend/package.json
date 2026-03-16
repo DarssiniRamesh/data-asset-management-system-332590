@@ -25,6 +25,7 @@
     "format": "prettier . --write",
     "format:check": "prettier . --check",
     "e2e": "playwright test -c playwright.config.ts",
+    "e2e:masters": "playwright test -c playwright.config.ts e2e/masters-api.spec.ts",
     "e2e:ui": "playwright test -c playwright.config.ts --ui",
     "e2e:report": "playwright show-report playwright-report",
     "e2e:install": "playwright install --with-deps",
