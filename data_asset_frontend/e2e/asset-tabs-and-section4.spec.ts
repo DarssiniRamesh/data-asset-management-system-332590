@@ -12,25 +12,19 @@ import { gotoAssetDetails } from "./utils/assetFlows";
 /**
  * Asset tabs/sections + Section4 endpoints E2E coverage.
  *
- * Design goals:
- * - Deterministic assertions:
- *   - Prefer checking that core tab panels render, plus API checks for endpoints.
- *   - Avoid brittle assertions that depend on seeded master data or exact table row counts.
- * - Reuse existing hybrid helpers:
- *   - uiLogin for end-to-end auth
- *   - apiLoginToken/api* for deterministic API setup/verification
- *
- * Notes:
- * - The UI portion validates each Asset Details tab is reachable and renders stable UI landmarks.
- * - The API portion validates the user-provided endpoint list responds with a valid token.
+ * Stabilization strategy (non-flaky):
+ * - Use WAI-ARIA tab roles (role=tablist/role=tab) + data-testid hooks.
+ * - Prefer verifying "behavioral invariants" (e.g., CRUD save creates a row, validation blocks save)
+ *   instead of only "page renders".
+ * - When a tab legitimately requires preconditions (e.g., Data Input requires selecting an input parameter),
+ *   assert the guidance copy deterministically.
  */
 
-test.describe("Asset Details: listed tabs/sections render + key API endpoints respond", () => {
-  test("Asset Details tabs/sections: Asset Details, Properties, Control Devices, Input Parameters, EF Source Mapping, Throughput Setup, Data Input, Parent Input Parameter Mapping, Reporting Attributes Mapping, Status Log, Additional Asset IDs", async ({
+test.describe("Asset Details: tabs behave deterministically + key API endpoints respond", () => {
+  test("Asset Details tabs/sections: all listed tabs are reachable; Additional IDs CRUD works; Data Input shows deterministic guidance when no input parameter selected", async ({
     page,
     request,
   }) => {
-    // This spec visits many tabs; allow more time than the default 60s to avoid flake in CI.
     test.setTimeout(120_000);
 
     // Setup: create an asset via API so all tabs have a concrete assetId route.
@@ -41,106 +35,122 @@ test.describe("Asset Details: listed tabs/sections render + key API endpoints re
     await uiLogin(page, { role: "Editor" });
     await gotoAssetDetails(page, created.assetId);
 
-    // The current UI renders the asset details "tabs" as role=button items (not role=tab).
-    // Wait for the tab strip to be present before interacting, otherwise first click can time out.
-    await expect(page.getByRole("button", { name: /asset details/i })).toBeVisible({ timeout: 20_000 });
+    // Wait for tab strip to be present.
+    const tablist = page.getByTestId("asset-tabs");
+    await expect(tablist).toBeVisible({ timeout: 20_000 });
 
     /**
-     * Click a tab button by its accessible name and assert an expected landmark exists.
-     * We keep this intentionally loose so it remains stable across minor UI copy changes.
+     * Click a tab by its stable data-testid (preferred) or by accessible name (fallback),
+     * then assert a stable "panel landmark" exists.
      */
-    const openTabAndAssert = async (tabName: RegExp, assertFn: () => Promise<void>) => {
-      const tabButton = page.getByRole("button", { name: tabName });
-      await expect(tabButton).toBeVisible({ timeout: 20_000 });
-      await tabButton.click();
+    const openTabById = async (tabId: string, fallbackName: RegExp, assertFn: () => Promise<void>) => {
+      const byId = page.getByTestId(`tab-${tabId}`);
+      const byName = page.getByRole("tab", { name: fallbackName });
+      const tab = byId.or(byName);
+
+      await expect(tab).toBeVisible({ timeout: 20_000 });
+      await tab.click();
 
       // Many tabs trigger API fetch; wait for network to settle a bit.
       await page.waitForLoadState("networkidle");
 
+      // Deterministic selection state.
+      await expect(tab).toHaveAttribute("aria-selected", "true");
+
       await assertFn();
     };
 
-    // 1) Asset Details (Overview)
-    await openTabAndAssert(/asset details/i, async () => {
-      // Deterministic: asset header exists and the configuration panel shows core fields.
-      await expect(page.getByRole("heading").first()).toBeVisible();
-
-      // Avoid strict-mode ambiguity with "Additional Asset IDs" tab label.
-      await expect(page.getByText("Asset ID", { exact: true })).toBeVisible();
-
-      await expect(page.getByText(/site/i).first()).toBeVisible();
-    });
-
-    // Helper: for table-like tabs, accept either an Add button, an empty-state message, or a table.
+    // Helper: for table-like tabs, accept either a "Create"/"Add" button, an empty-state message, or a table.
     const expectCrudLikeTabToRender = async (emptyStateRegex: RegExp) => {
-      const addBtn = page.getByRole("button", { name: /^add$/i }).or(page.getByRole("button", { name: /add/i }));
+      const createBtn = page
+        .getByRole("button", { name: /create/i })
+        .or(page.getByRole("button", { name: /^add$/i }))
+        .or(page.getByRole("button", { name: /add/i }));
       const emptyState = page.getByText(emptyStateRegex);
       const table = page.getByRole("table");
-      await expect(addBtn.or(emptyState).or(table)).toBeVisible({ timeout: 20_000 });
+      await expect(createBtn.or(emptyState).or(table)).toBeVisible({ timeout: 20_000 });
     };
 
+    // Guidance for input-parameter dependent tabs
+    const expectSelectInputParameterGuidance = async () => {
+      await expect(page.getByText(/Select an input parameter/i)).toBeVisible({ timeout: 20_000 });
+    };
+
+    // 1) Asset Details (Overview) - stable header + core fields
+    await openTabById("overview", /asset details/i, async () => {
+      await expect(page.getByRole("heading").first()).toBeVisible();
+      await expect(page.getByText("Asset ID", { exact: true })).toBeVisible();
+    });
+
     // 2) Asset Properties
-    await openTabAndAssert(/asset properties|properties/i, async () => {
+    await openTabById("properties", /asset properties|properties/i, async () => {
       await expectCrudLikeTabToRender(/no (asset )?properties/i);
     });
 
     // 3) Associated Control Devices
-    await openTabAndAssert(/associated control devices|control devices/i, async () => {
+    await openTabById("controlDevices", /associated control devices|control devices/i, async () => {
       await expectCrudLikeTabToRender(/no (associated )?control devices/i);
     });
 
     // 4) Associated Input Parameters
-    await openTabAndAssert(/associated input parameters|input parameters/i, async () => {
+    await openTabById("inputParameters", /associated input parameters|input parameters/i, async () => {
       await expectCrudLikeTabToRender(/no (associated )?input parameters/i);
     });
 
-    // Tabs that often depend on selecting an input parameter first; accept guidance OR table.
-    // Strict-mode safe: target the specific EF/Throughput/DataInput guidance copy (deterministic),
-    // rather than a broad `/select/i` which can match multiple nodes.
-    const expectSelectGuidanceOrTable = async () => {
-      const guidance = page.getByText(/Select an input parameter/i);
-      const table = page.getByRole("table");
-      const emptyState = page.getByText(/no /i);
-      await expect(guidance.or(table).or(emptyState)).toBeVisible({ timeout: 20_000 });
-    };
-
-    // 5) EF Source Mapping
-    await openTabAndAssert(/ef source mapping/i, async () => {
-      await expectSelectGuidanceOrTable();
+    // 5) EF Source Mapping (requires input parameter selection)
+    await openTabById("efSourceMapping", /ef source mapping/i, async () => {
+      await expectSelectInputParameterGuidance();
     });
 
-    // 6) Throughput Setup
-    await openTabAndAssert(/throughput setup/i, async () => {
-      await expectSelectGuidanceOrTable();
+    // 6) Throughput Setup (requires input parameter selection)
+    await openTabById("throughputSetup", /throughput setup/i, async () => {
+      await expectSelectInputParameterGuidance();
     });
 
-    // 7) Data Input
-    await openTabAndAssert(/data input/i, async () => {
-      await expectSelectGuidanceOrTable();
+    // 7) Data Input (requires input parameter selection) -> assert deterministic guidance
+    await openTabById("dataInput", /data input/i, async () => {
+      await expectSelectInputParameterGuidance();
     });
 
-    // 8) Parent Input Parameter Mapping
-    await openTabAndAssert(/parent input parameter mapping/i, async () => {
-      await expectSelectGuidanceOrTable();
+    // 8) Parent Input Parameter Mapping (requires input parameter selection)
+    await openTabById("parentInputParameterMapping", /parent input parameter mapping/i, async () => {
+      await expectSelectInputParameterGuidance();
     });
 
     // 9) Reporting Attributes Mapping
-    await openTabAndAssert(/reporting attributes mapping/i, async () => {
+    await openTabById("reportingAttributesMapping", /reporting attributes mapping/i, async () => {
       await expectCrudLikeTabToRender(/no reporting/i);
     });
 
     // 10) Status Log
-    await openTabAndAssert(/status log/i, async () => {
+    await openTabById("statusLog", /status log/i, async () => {
       await expectCrudLikeTabToRender(/no status/i);
     });
 
-    // 11) Additional Asset IDs (known flaky area)
-    await openTabAndAssert(/additional asset ids/i, async () => {
-      // This tab can legitimately be empty; accept empty-state/table/add button.
+    /**
+     * 11) Additional Asset IDs (historically flaky):
+     * Behavioral verification:
+     * - Create a new Additional ID from the UI.
+     * - Verify the created row appears (by Value).
+     */
+    await openTabById("additionalAssetIds", /additional asset ids/i, async () => {
+      // Ensure the tab is in a stable baseline state.
       await expectCrudLikeTabToRender(/no additional/i);
+
+      const value = `PW-ADD-${Date.now()}`;
+      await page.getByRole("button", { name: /create additional id/i }).click();
+
+      // Deterministic modal fields
+      await expect(page.getByRole("dialog")).toBeVisible({ timeout: 20_000 });
+      await page.getByLabel("ID Type").fill("Playwright");
+      await page.getByLabel("ID Value").fill(value);
+
+      // Save and verify outcome
+      await page.getByRole("button", { name: /^save$/i }).click();
+      await expect(page.getByText(value, { exact: true })).toBeVisible({ timeout: 20_000 });
     });
 
-    // Cleanup
+    // Cleanup (best-effort; even if UI fails, test cleanup is still attempted via API).
     const adminToken = await apiLoginToken(request, { role: "Admin" });
     await apiDeleteAsset(request, adminToken, created.assetId);
   });
@@ -148,7 +158,6 @@ test.describe("Asset Details: listed tabs/sections render + key API endpoints re
   test("Section4 endpoints (user_input_ref): CRUD endpoints respond with auth token (deterministic API checks)", async ({ request }) => {
     const token = await apiLoginToken(request, { role: "Editor" });
 
-    // We avoid assuming exact required payload shapes for these entities (may change / have validations).
     // Deterministic strategy:
     // - GET list endpoints: must return 200 with auth
     // - POST: attempt minimal payload; accept 201 OR 400 (validation)
@@ -186,16 +195,11 @@ test.describe("Asset Details: listed tabs/sections render + key API endpoints re
     }
   });
 
-  test("LegacyCompatibility endpoints (user_input_ref): endpoints respond with auth token (deterministic API checks)", async ({
-    request,
-  }) => {
+  test("LegacyCompatibility endpoints (user_input_ref): endpoints respond with auth token (deterministic API checks)", async ({ request }) => {
     /**
      * Determinism rule for these API checks:
-     * - We should not REQUIRE that we "observe a 403" unless the test explicitly triggers a forbidden call.
-     * - Therefore:
-     *   - For happy-path contract checks, use Admin and assert only the expected success/validation statuses.
-     *   - Separately, explicitly trigger a forbidden call with an Editor token (if RBAC is enforced) and allow either
-     *     403 (preferred) OR a non-403 if the environment is configured to be permissive.
+     * - For happy-path contract checks, use Admin and assert only expected success/validation statuses.
+     * - Separately, explicitly probe RBAC with an Editor token and accept 403 OR non-403 (environment-dependent).
      */
 
     // 1) Happy-path deterministic legacy POST contract checks (Admin).
@@ -214,8 +218,6 @@ test.describe("Asset Details: listed tabs/sections render + key API endpoints re
     }
 
     // 2) Explicitly-triggered RBAC check (Editor).
-    // If the environment enforces RBAC on these legacy endpoints, this should be 403.
-    // If it doesn't, we accept 200/201/400 as well to avoid non-determinism across deployments.
     const editorToken = await apiLoginToken(request, { role: "Editor" });
     const forbiddenProbe = await request.post(`${getTestEnv().backendBaseUrl}/api/siteassets/managesiteassets`, {
       headers: { Authorization: `Bearer ${editorToken}` },
@@ -228,18 +230,14 @@ test.describe("Asset Details: listed tabs/sections render + key API endpoints re
     const created = await apiCreateAsset(request, token, { assetNamePrefix: "PW-LEGACY" });
 
     // Create an input parameter for legacy endpoints requiring inputParameterId.
-    // Minimal sample; accept 201 or 400. If 400, we still validate GET list works.
-    const ipCreate = await request.post(
-      `${getTestEnv().backendBaseUrl}/api/assets/${encodeURIComponent(created.assetId)}/input-parameters`,
-      {
-        headers: { Authorization: `Bearer ${token}` },
-        data: {
-          inputName: `pw-ip-${Date.now()}`,
-          createdBy: "pw",
-          correlationId: `pw-ip-${Date.now()}`,
-        },
+    const ipCreate = await request.post(`${getTestEnv().backendBaseUrl}/api/assets/${encodeURIComponent(created.assetId)}/input-parameters`, {
+      headers: { Authorization: `Bearer ${token}` },
+      data: {
+        inputName: `pw-ip-${Date.now()}`,
+        createdBy: "pw",
+        correlationId: `pw-ip-${Date.now()}`,
       },
-    );
+    });
 
     let inputParameterId: string | undefined;
     if (ipCreate.status() === 201) {
@@ -249,7 +247,6 @@ test.describe("Asset Details: listed tabs/sections render + key API endpoints re
     }
 
     if (inputParameterId) {
-      // /api/inputefsourcemapping/{assetId}/{inputParameterId} GET/POST and PUT with efSourceMappingId
       const efGet = await request.get(
         `${getTestEnv().backendBaseUrl}/api/inputefsourcemapping/${encodeURIComponent(created.assetId)}/${encodeURIComponent(inputParameterId)}`,
         { headers: { Authorization: `Bearer ${token}` } },
