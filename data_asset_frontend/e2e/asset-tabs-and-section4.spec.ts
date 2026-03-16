@@ -95,8 +95,10 @@ test.describe("Asset Details: listed tabs/sections render + key API endpoints re
     });
 
     // Tabs that often depend on selecting an input parameter first; accept guidance OR table.
+    // Strict-mode safe: target the specific EF/Throughput/DataInput guidance copy (deterministic),
+    // rather than a broad `/select/i` which can match multiple nodes.
     const expectSelectGuidanceOrTable = async () => {
-      const guidance = page.getByText(/select/i);
+      const guidance = page.getByText(/Select an input parameter/i);
       const table = page.getByRole("table");
       const emptyState = page.getByText(/no /i);
       await expect(guidance.or(table).or(emptyState)).toBeVisible({ timeout: 20_000 });
