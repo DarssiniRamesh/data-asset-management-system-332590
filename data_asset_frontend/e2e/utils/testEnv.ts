@@ -214,20 +214,25 @@ export async function apiDelete(
 // PUBLIC_INTERFACE
 export async function uiLogin(page: Page, opts: { username?: string; role: "Viewer" | "Editor" | "Admin" }): Promise<void> {
   /**
-   * UI-login through /login and the Sign in button.
+   * UI-login through the landing page (/) where the sign-in form is embedded.
    * This exercises the backend /api/auth/login via the UI, ensuring end-to-end auth wiring works.
    */
   const username = opts.username || "demo";
 
-  await page.goto("/login");
-  await expect(page.getByRole("heading", { name: /login/i })).toBeVisible();
+  // New login UX: embedded form on landing page; /login is no longer a routed page.
+  await page.goto("/");
+
+  // Assert the embedded sign-in form is present using stable, accessible selectors.
+  await expect(page.getByLabel("Username")).toBeVisible();
+  await expect(page.getByLabel("Role")).toBeVisible();
+  await expect(page.getByRole("button", { name: /^sign in$/i })).toBeVisible();
 
   await page.getByLabel("Username").fill(username);
   await page.getByLabel("Role").selectOption(opts.role);
-  await page.getByRole("button", { name: /sign in/i }).click();
+  await page.getByRole("button", { name: /^sign in$/i }).click();
 
-  // Successful login navigates to /app (DashboardLayout)
-  await expect(page).toHaveURL(/\/app/);
+  // Successful login navigates to /app (DashboardLayout).
+  await expect(page).toHaveURL(/\/app(\/|$)/);
 }
 
 // PUBLIC_INTERFACE
