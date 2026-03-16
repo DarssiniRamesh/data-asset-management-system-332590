@@ -74,13 +74,13 @@
           - link "Assets" [ref=e83] [cursor=pointer]:
             - /url: /app/assets
           - generic [ref=e84]: /
-        - generic [ref=e86]: PW-TABS-1773658989649
+        - generic [ref=e86]: PW-TABS-1773659299460
       - generic [ref=e87]:
         - generic [ref=e88]:
-          - heading "PW-TABS-1773658989649" [level=1] [ref=e89]
+          - heading "PW-TABS-1773659299460" [level=1] [ref=e89]
           - paragraph [ref=e90]: SITE-001 • AG • PG
         - link "Edit" [ref=e91] [cursor=pointer]:
-          - /url: /app/assets/205/edit
+          - /url: /app/assets/235/edit
           - img [ref=e92]
           - text: Edit
       - generic [ref=e94]:
@@ -88,15 +88,15 @@
         - button "Asset Properties" [ref=e96] [cursor=pointer]
         - button "Associated Control Devices" [ref=e97] [cursor=pointer]
         - button "Associated Input Parameters" [ref=e98] [cursor=pointer]
-        - button "EF Source Mapping" [active] [ref=e99] [cursor=pointer]
+        - button "EF Source Mapping" [ref=e99] [cursor=pointer]
         - button "Throughput Setup" [ref=e100] [cursor=pointer]
         - button "Data Input" [ref=e101] [cursor=pointer]
-        - button "Parent Input Parameter Mapping" [ref=e102] [cursor=pointer]
+        - button "Parent Input Parameter Mapping" [active] [ref=e102] [cursor=pointer]
         - button "Reporting Attributes Mapping" [ref=e103] [cursor=pointer]
         - button "Status Log" [ref=e104] [cursor=pointer]
         - button "Additional Asset IDs" [ref=e105] [cursor=pointer]
       - generic [ref=e106]:
-        - generic [ref=e107]: EF Source Mapping
-        - generic [ref=e108]: Configure EF source mapping for the selected input parameter.
-        - generic [ref=e109]: Select an input parameter in Associated Input Parameters to configure EF Source Mapping.
+        - generic [ref=e107]: Parent Input Parameter Mapping
+        - generic [ref=e108]: Select an input parameter in Associated Input Parameters to view mappings.
+        - generic [ref=e109]: Select an input parameter in Associated Input Parameters to view Parent Input Parameter Mapping.
 ```
