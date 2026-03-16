@@ -24,6 +24,10 @@
     "lint:fix": "eslint . --fix",
     "format": "prettier . --write",
     "format:check": "prettier . --check",
+    "e2e": "playwright test -c playwright.config.ts",
+    "e2e:ui": "playwright test -c playwright.config.ts --ui",
+    "e2e:report": "playwright show-report playwright-report",
+    "e2e:install": "playwright install --with-deps",
     "eject": "react-scripts eject"
   },
   "browserslist": {
@@ -40,6 +44,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^8.57.0",
+    "@playwright/test": "^1.58.2",
     "@types/jest": "^29.5.14",
     "@types/node": "^18.19.0",
     "@types/react": "^18.0.0",

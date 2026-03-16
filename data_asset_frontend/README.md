@@ -31,6 +31,43 @@ Runs tests in non-interactive CI mode (sets `CI=true`).
 Builds the app for production to the `build` folder.\
 It correctly bundles React in production mode and optimizes the build for the best performance.
 
+## Playwright E2E (BRD backend flows)
+
+This repo includes Playwright tests under `data_asset_frontend/e2e/**` that validate backend-relevant BRD flows via UI and direct API:
+
+- Add Asset (API create + UI list visibility)
+- Edit Asset (API update + UI details visibility)
+- Delete Asset (RBAC: Editor forbidden, Admin allowed)
+- Copy Asset (UI "Confirmation!" modal + lineage visibility best-effort)
+
+### One-time install (browsers)
+
+```bash
+npm run e2e:install
+```
+
+### Run suite
+
+Make sure the app and backend are running (in this workspace they are typically already running on ports 3000/3001).
+
+```bash
+npm run e2e
+```
+
+### Useful commands
+
+```bash
+npm run e2e:ui
+npm run e2e:report
+```
+
+### Environment variables
+
+Playwright uses the same variables as the app:
+
+- `REACT_APP_FRONTEND_URL` (defaults to `http://localhost:3000`)
+- `REACT_APP_API_BASE` (defaults to `http://localhost:3001`)
+
 ## Coding standard tooling (lint/format)
 
 This frontend is configured to enforce consistent style via ESLint + Prettier.
