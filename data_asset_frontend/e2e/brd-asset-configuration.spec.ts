@@ -4,6 +4,8 @@ import {
   apiCreateAsset,
   apiDeleteAsset,
   apiLoginToken,
+  apiPut,
+  apiDelete,
   getTestEnv,
   uiLogin,
 } from "./utils/testEnv";
@@ -38,8 +40,8 @@ test.describe("BRD Asset Configuration - backend relevant E2E/API checks", () =>
     const newName = `${created.assetName}-UPDATED`;
 
     // Update via API (PUT /api/assets/{id})
-    const updateRes = await request.put(`${backendBaseUrl}/api/assets/${encodeURIComponent(created.assetId)}`, {
-      headers: { Authorization: `Bearer ${editorToken}` },
+    await apiPut(request, `/api/assets/${encodeURIComponent(created.assetId)}`, {
+      token: editorToken,
       data: {
         assetName: newName,
         siteId: "SITE-001",
@@ -52,7 +54,6 @@ test.describe("BRD Asset Configuration - backend relevant E2E/API checks", () =>
         correlationId: `pw-upd-${Date.now()}`,
       },
     });
-    expect(updateRes.ok()).toBeTruthy();
 
     // UI should show new name after navigating to details
     await uiLogin(page, { role: "Editor" });
@@ -70,9 +71,10 @@ test.describe("BRD Asset Configuration - backend relevant E2E/API checks", () =>
     const { backendBaseUrl } = getTestEnv();
 
     // Editor tries to delete => should be forbidden (typically 403)
-    const delEditor = await request.delete(`${backendBaseUrl}/api/assets/${encodeURIComponent(created.assetId)}`, {
-      headers: { Authorization: `Bearer ${editorToken}` },
+    const delEditor = await apiDelete(request, `/api/assets/${encodeURIComponent(created.assetId)}`, {
+      token: editorToken,
       data: { modifiedBy: "pw", correlationId: `pw-del-editor-${Date.now()}` },
+      okStatuses: [401, 403],
     });
     expect([401, 403]).toContain(delEditor.status());
 

@@ -1,4 +1,4 @@
-import { expect, type APIRequestContext, type Page } from "@playwright/test";
+import { expect, type APIRequestContext, type APIResponse, type Page } from "@playwright/test";
 
 export type TestEnv = {
   frontendBaseUrl: string;
@@ -9,12 +9,166 @@ function normalizeBaseUrl(url: string): string {
   return url.replace(/\/$/, "");
 }
 
+function requiredEnv(name: string, value: string | undefined): string {
+  if (!value) {
+    throw new Error(
+      `[e2e env] Missing required environment variable ${name}. ` +
+        `Playwright E2E tests must be run with environment-provided URLs (no localhost defaults).`,
+    );
+  }
+  return value;
+}
+
+function resolveFrontendBaseUrl(): string {
+  // Prefer the explicitly provided frontend URL.
+  const raw =
+    process.env.REACT_APP_FRONTEND_URL ||
+    // Fallback for some CI setups.
+    process.env.PLAYWRIGHT_BASE_URL;
+
+  return normalizeBaseUrl(requiredEnv("REACT_APP_FRONTEND_URL", raw));
+}
+
+function resolveBackendBaseUrl(): string {
+  // Preferred env var for backend base (as defined for this container).
+  const raw =
+    process.env.REACT_APP_BACKEND_URL ||
+    // Back-compat (older code used API_BASE).
+    process.env.REACT_APP_API_BASE;
+
+  // If the API base is set to something like https://host/api, we still want the origin for /api/* routes.
+  // Keep it simple: just normalize trailing slash; tests append /api/... themselves.
+  return normalizeBaseUrl(requiredEnv("REACT_APP_BACKEND_URL", raw));
+}
+
 // PUBLIC_INTERFACE
 export function getTestEnv(): TestEnv {
-  /** Resolve base URLs from the same env vars used by the CRA app. */
-  const frontendBaseUrl = normalizeBaseUrl(process.env.REACT_APP_FRONTEND_URL || "http://localhost:3000");
-  const backendBaseUrl = normalizeBaseUrl(process.env.REACT_APP_API_BASE || process.env.REACT_APP_BACKEND_URL || "http://localhost:3001");
+  /** Resolve base URLs from environment variables; never default to localhost. */
+  const frontendBaseUrl = resolveFrontendBaseUrl();
+  const backendBaseUrl = resolveBackendBaseUrl();
   return { frontendBaseUrl, backendBaseUrl };
+}
+
+async function safeReadBody(res: APIResponse): Promise<string> {
+  try {
+    // Prefer text() to handle non-JSON ProblemDetails etc.
+    return await res.text();
+  } catch {
+    return "<unable to read response body>";
+  }
+}
+
+function buildApiFailureMessage(opts: {
+  method: string;
+  url: string;
+  status: number;
+  statusText: string;
+  requestData?: unknown;
+  responseBody?: string;
+}): string {
+  const parts: string[] = [];
+  parts.push(`[e2e api] ${opts.method} ${opts.url} failed`);
+  parts.push(`status: ${opts.status} ${opts.statusText}`);
+  if (opts.requestData !== undefined) parts.push(`request data: ${JSON.stringify(opts.requestData, null, 2)}`);
+  if (opts.responseBody !== undefined) parts.push(`response body: ${opts.responseBody}`);
+  return parts.join("\n");
+}
+
+// PUBLIC_INTERFACE
+export async function apiPost(
+  request: APIRequestContext,
+  path: string,
+  opts: { token?: string; data?: unknown } = {},
+): Promise<APIResponse> {
+  /** POST helper that logs useful details on failure. */
+  const { backendBaseUrl } = getTestEnv();
+  const url = `${backendBaseUrl}${path.startsWith("/") ? "" : "/"}${path}`;
+
+  const res = await request.post(url, {
+    headers: opts.token ? { Authorization: `Bearer ${opts.token}` } : undefined,
+    data: opts.data,
+  });
+
+  if (!res.ok()) {
+    const responseBody = await safeReadBody(res);
+    throw new Error(
+      buildApiFailureMessage({
+        method: "POST",
+        url,
+        status: res.status(),
+        statusText: res.statusText(),
+        requestData: opts.data,
+        responseBody,
+      }),
+    );
+  }
+
+  return res;
+}
+
+// PUBLIC_INTERFACE
+export async function apiPut(
+  request: APIRequestContext,
+  path: string,
+  opts: { token?: string; data?: unknown } = {},
+): Promise<APIResponse> {
+  /** PUT helper that logs useful details on failure. */
+  const { backendBaseUrl } = getTestEnv();
+  const url = `${backendBaseUrl}${path.startsWith("/") ? "" : "/"}${path}`;
+
+  const res = await request.put(url, {
+    headers: opts.token ? { Authorization: `Bearer ${opts.token}` } : undefined,
+    data: opts.data,
+  });
+
+  if (!res.ok()) {
+    const responseBody = await safeReadBody(res);
+    throw new Error(
+      buildApiFailureMessage({
+        method: "PUT",
+        url,
+        status: res.status(),
+        statusText: res.statusText(),
+        requestData: opts.data,
+        responseBody,
+      }),
+    );
+  }
+
+  return res;
+}
+
+// PUBLIC_INTERFACE
+export async function apiDelete(
+  request: APIRequestContext,
+  path: string,
+  opts: { token?: string; data?: unknown; okStatuses?: number[] } = {},
+): Promise<APIResponse> {
+  /** DELETE helper that logs useful details on failure. */
+  const { backendBaseUrl } = getTestEnv();
+  const url = `${backendBaseUrl}${path.startsWith("/") ? "" : "/"}${path}`;
+
+  const res = await request.delete(url, {
+    headers: opts.token ? { Authorization: `Bearer ${opts.token}` } : undefined,
+    data: opts.data,
+  });
+
+  const okStatuses = opts.okStatuses ?? [200, 202, 204];
+  if (!okStatuses.includes(res.status())) {
+    const responseBody = await safeReadBody(res);
+    throw new Error(
+      buildApiFailureMessage({
+        method: "DELETE",
+        url,
+        status: res.status(),
+        statusText: res.statusText(),
+        requestData: opts.data,
+        responseBody,
+      }),
+    );
+  }
+
+  return res;
 }
 
 // PUBLIC_INTERFACE
@@ -37,16 +191,18 @@ export async function uiLogin(page: Page, opts: { username?: string; role: "View
 }
 
 // PUBLIC_INTERFACE
-export async function apiLoginToken(request: APIRequestContext, opts: { username?: string; role: "Viewer" | "Editor" | "Admin" }): Promise<string> {
+export async function apiLoginToken(
+  request: APIRequestContext,
+  opts: { username?: string; role: "Viewer" | "Editor" | "Admin" },
+): Promise<string> {
   /** Get JWT via backend dev login endpoint. */
-  const { backendBaseUrl } = getTestEnv();
-  const res = await request.post(`${backendBaseUrl}/api/auth/login`, {
+  const res = await apiPost(request, "/api/auth/login", {
     data: {
       username: opts.username || "demo",
       role: opts.role,
     },
   });
-  expect(res.ok()).toBeTruthy();
+
   const body = (await res.json()) as { accessToken: string };
   expect(body.accessToken).toBeTruthy();
   return body.accessToken;
@@ -75,14 +231,13 @@ export async function apiCreateAsset(
    * Create an asset using POST /api/assets with unique IDs to avoid 409 conflicts.
    * This is used to set up data for copy/edit/delete tests.
    */
-  const { backendBaseUrl } = getTestEnv();
   const ts = Date.now();
   const assetName = `${opts.assetNamePrefix || "PW-ASSET"}-${ts}`;
   const permitEuId = `PW-PERMIT-${ts}`;
   const globalUniqueAssetId = `PW-GUA-${ts}`;
 
-  const res = await request.post(`${backendBaseUrl}/api/assets`, {
-    headers: { Authorization: `Bearer ${token}` },
+  const res = await apiPost(request, "/api/assets", {
+    token,
     data: {
       siteId: opts.siteId || "SITE-001",
       assetGroup: opts.assetGroup || "AG",
@@ -97,7 +252,6 @@ export async function apiCreateAsset(
     },
   });
 
-  expect(res.ok()).toBeTruthy();
   const body = (await res.json()) as { assetId: number | string; assetName: string; permitEuId: string; globalUniqueAssetId: string };
   return {
     assetId: String(body.assetId),
@@ -110,14 +264,12 @@ export async function apiCreateAsset(
 // PUBLIC_INTERFACE
 export async function apiDeleteAsset(request: APIRequestContext, token: string, assetId: string): Promise<void> {
   /** Delete an asset (Admin role required) */
-  const { backendBaseUrl } = getTestEnv();
-  const res = await request.delete(`${backendBaseUrl}/api/assets/${encodeURIComponent(assetId)}`, {
-    headers: { Authorization: `Bearer ${token}` },
+  await apiDelete(request, `/api/assets/${encodeURIComponent(assetId)}`, {
+    token,
     data: { modifiedBy: "pw", correlationId: `pw-del-${Date.now()}` },
+    // Most environments: 204. If asset already deleted in a prior run, allow 404.
+    okStatuses: [204, 404],
   });
-
-  // Most environments: 204. If asset already deleted in a prior run, allow 404.
-  expect([204, 404]).toContain(res.status());
 }
 
 // PUBLIC_INTERFACE
@@ -131,12 +283,11 @@ export async function apiCopyAsset(
    * Copy an asset and return best-effort metadata from backend response.
    * BRD focus: create-semantics + lineage visibility.
    */
-  const { backendBaseUrl } = getTestEnv();
-  const res = await request.post(`${backendBaseUrl}/api/assets/${encodeURIComponent(assetId)}/copy`, {
-    headers: { Authorization: `Bearer ${token}` },
+  const res = await apiPost(request, `/api/assets/${encodeURIComponent(assetId)}/copy`, {
+    token,
     data: { newAssetName },
   });
-  expect(res.ok()).toBeTruthy();
+
   const body = (await res.json()) as any;
 
   // Backend payload variants supported by UI code: best-effort extract.

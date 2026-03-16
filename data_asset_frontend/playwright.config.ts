@@ -5,12 +5,26 @@ import { defineConfig, devices } from "@playwright/test";
  *
  * Important:
  * - testDir is set to "e2e" so Playwright does NOT try to execute Jest/unit tests under src/**.
- * - Tests rely on existing running services in this workspace:
- *    - Frontend: REACT_APP_FRONTEND_URL (default: http://localhost:3000)
- *    - Backend:  REACT_APP_API_BASE (default: http://localhost:3001)
+ * - Tests MUST rely on environment-provided URLs (no localhost defaults):
+ *    - Frontend: REACT_APP_FRONTEND_URL
+ *    - Backend:  REACT_APP_BACKEND_URL (fallback: REACT_APP_API_BASE for back-compat)
  */
-const frontendBaseURL = process.env.REACT_APP_FRONTEND_URL || "http://localhost:3000";
-const backendBaseURL = process.env.REACT_APP_API_BASE || "http://localhost:3001";
+function requiredEnv(name: string, value: string | undefined): string {
+  if (!value) {
+    throw new Error(`[playwright] Missing required environment variable ${name}. Refusing to default to localhost.`);
+  }
+  return value;
+}
+
+const frontendBaseURL = requiredEnv(
+  "REACT_APP_FRONTEND_URL",
+  process.env.REACT_APP_FRONTEND_URL || process.env.PLAYWRIGHT_BASE_URL,
+).replace(/\/$/, "");
+
+const backendBaseURL = requiredEnv(
+  "REACT_APP_BACKEND_URL",
+  process.env.REACT_APP_BACKEND_URL || process.env.REACT_APP_API_BASE,
+).replace(/\/$/, "");
 
 export default defineConfig({
   testDir: "./e2e",
