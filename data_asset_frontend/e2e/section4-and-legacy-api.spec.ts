@@ -254,10 +254,36 @@ async function seedAssetAndInputParameter(request: any, token: string): Promise<
   /**
    * Legacy endpoints require an assetId and an inputParameterId, and tests must not assume pre-seeded data.
    * We create both, then caller cleans up asset at the end (deleting asset should cascade/soft-delete children).
+   *
+   * Backend validation note:
+   * - When inUseFlag=true, backend requires uomId and reportingProgramId.
+   *   Therefore we fetch a valid uomId and reportingProgramId from masters endpoints and include them.
    */
   const asset = await apiCreateAsset(request, token, { assetNamePrefix: "PW-LEGACY" });
 
-  // Create an input parameter for the asset using OpenAPI-required fields.
+  // Fetch valid master IDs (limit=1 is enough).
+  const uomsRes = await apiGet(request, "/api/masters/uoms?ActiveOnly=true&Limit=1", { token, okStatuses: [200] });
+  const uoms = (await safeJson(uomsRes)) as any[];
+  expect(Array.isArray(uoms) && uoms.length > 0, "Expected at least one UOM from /api/masters/uoms").toBe(true);
+  const uomId = uoms[0]?.uomId ?? uoms[0]?.UomId;
+  expect(uomId !== undefined && uomId !== null, "Expected uomId field on UOM master").toBeTruthy();
+
+  const programsRes = await apiGet(request, "/api/masters/reporting-programs?ActiveOnly=true&Limit=1", {
+    token,
+    okStatuses: [200],
+  });
+  const programs = (await safeJson(programsRes)) as any[];
+  expect(
+    Array.isArray(programs) && programs.length > 0,
+    "Expected at least one reporting program from /api/masters/reporting-programs",
+  ).toBe(true);
+  const reportingProgramId = programs[0]?.reportingProgramId ?? programs[0]?.ReportingProgramId;
+  expect(
+    reportingProgramId !== undefined && reportingProgramId !== null,
+    "Expected reportingProgramId field on reporting program master",
+  ).toBeTruthy();
+
+  // Create an input parameter for the asset using OpenAPI-required fields + required master refs.
   const createInputParameterRes = await apiPost(
     request,
     `/api/assets/${encodeURIComponent(asset.assetId)}/input-parameters`,
@@ -268,9 +294,10 @@ async function seedAssetAndInputParameter(request: any, token: string): Promise<
         inputType: "Text",
         dataEntryFrequency: "Monthly",
         inUseFlag: true,
+        uomId: Number(uomId),
+        reportingProgramId: Number(reportingProgramId),
         createdBy: "pw",
         correlationId: uniqueKey("pw-ip-create"),
-        // uomId/reportingProgramId are optional; omit for minimal required payload.
       },
     },
   );
