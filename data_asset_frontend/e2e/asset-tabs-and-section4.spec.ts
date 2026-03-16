@@ -64,7 +64,10 @@ test.describe("Asset Details: listed tabs/sections render + key API endpoints re
     await openTabAndAssert(/asset details/i, async () => {
       // Deterministic: asset header exists and the configuration panel shows core fields.
       await expect(page.getByRole("heading").first()).toBeVisible();
-      await expect(page.getByText(/asset id/i)).toBeVisible();
+
+      // Avoid strict-mode ambiguity with "Additional Asset IDs" tab label.
+      await expect(page.getByText("Asset ID", { exact: true })).toBeVisible();
+
       await expect(page.getByText(/site/i).first()).toBeVisible();
     });
 
@@ -184,11 +187,19 @@ test.describe("Asset Details: listed tabs/sections render + key API endpoints re
   test("LegacyCompatibility endpoints (user_input_ref): endpoints respond with auth token (deterministic API checks)", async ({
     request,
   }) => {
-    // These legacy endpoints are RBAC-protected in some environments and may return 403 for Editor.
-    // Use Admin to avoid/handle 403 flake in deterministic contract checks.
+    /**
+     * Determinism rule for these API checks:
+     * - We should not REQUIRE that we "observe a 403" unless the test explicitly triggers a forbidden call.
+     * - Therefore:
+     *   - For happy-path contract checks, use Admin and assert only the expected success/validation statuses.
+     *   - Separately, explicitly trigger a forbidden call with an Editor token (if RBAC is enforced) and allow either
+     *     403 (preferred) OR a non-403 if the environment is configured to be permissive.
+     */
+
+    // 1) Happy-path deterministic legacy POST contract checks (Admin).
     const token = await apiLoginToken(request, { role: "Admin" });
 
-    // For POST routes we allow 200/201/400 (validation) and also 403 in case environment tightens RBAC further.
+    // For POST routes we allow 200/201/400 (validation). 403 is NOT required and should not be expected here.
     const legacyPostPaths = ["/api/siteassets/managesiteassets", "/api/siteassets/removesiteasset"];
 
     for (const path of legacyPostPaths) {
@@ -197,8 +208,18 @@ test.describe("Asset Details: listed tabs/sections render + key API endpoints re
         data: { correlationId: `pw-legacy-${Date.now()}` },
       });
 
-      expect([200, 201, 400, 403]).toContain(res.status());
+      expect([200, 201, 400]).toContain(res.status());
     }
+
+    // 2) Explicitly-triggered RBAC check (Editor).
+    // If the environment enforces RBAC on these legacy endpoints, this should be 403.
+    // If it doesn't, we accept 200/201/400 as well to avoid non-determinism across deployments.
+    const editorToken = await apiLoginToken(request, { role: "Editor" });
+    const forbiddenProbe = await request.post(`${getTestEnv().backendBaseUrl}/api/siteassets/managesiteassets`, {
+      headers: { Authorization: `Bearer ${editorToken}` },
+      data: { correlationId: `pw-legacy-editor-probe-${Date.now()}` },
+    });
+    expect([200, 201, 400, 403]).toContain(forbiddenProbe.status());
 
     // Legacy EF source mapping (path params) and throughput generator.
     // Create an asset using supported current endpoints to get IDs.
