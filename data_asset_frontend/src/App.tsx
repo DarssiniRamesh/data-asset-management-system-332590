@@ -1,6 +1,5 @@
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import { LandingPage } from "./pages/LandingPage";
-import { LoginPage } from "./pages/LoginPage";
 import { DashboardLayout } from "./layout/DashboardLayout";
 import { ProtectedRoute } from "./routes/ProtectedRoute";
 import { DashboardHomePage } from "./pages/DashboardHomePage";
@@ -31,6 +30,9 @@ function App() {
    * - Provides Theme/Auth/Toast contexts
    * - Sets up React Router pages
    * - Dashboard routes are protected (JWT required)
+   *
+   * UX note:
+   * - Login is embedded into the landing page; there is no standalone /login route.
    */
   return (
     <ThemeProvider>
@@ -40,7 +42,6 @@ function App() {
             <NotificationToasts />
             <Routes>
               <Route path="/" element={<LandingPage />} />
-              <Route path="/login" element={<LoginPage />} />
 
               <Route element={<ProtectedRoute />}>
                 <Route path="/app" element={<DashboardLayout />}>
