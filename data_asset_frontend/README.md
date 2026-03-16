@@ -63,10 +63,21 @@ npm run e2e:report
 
 ### Environment variables
 
-Playwright uses the same variables as the app:
+Playwright uses the same variables as the app, but **the Playwright config intentionally refuses to default to localhost** (to avoid accidentally testing the wrong environment in CI).
 
-- `REACT_APP_FRONTEND_URL` (defaults to `http://localhost:3000`)
-- `REACT_APP_API_BASE` (defaults to `http://localhost:3001`)
+Required:
+
+- `REACT_APP_FRONTEND_URL` (e.g. `https://...:3000`)
+- `REACT_APP_BACKEND_URL` (preferred, e.g. `https://...:3001`)
+  - fallback supported for legacy setups: `REACT_APP_API_BASE`
+
+### Observability coverage (correlation-id)
+
+The Playwright suite includes hybrid UI+API tests that validate correlation-id propagation:
+
+- Backend echoes `X-Correlation-Id` when a valid value is provided
+- Backend generates a new correlation id when missing/invalid
+- UI-triggered API calls include `X-Correlation-Id` on responses (ensures end-to-end traceability)
 
 ## Coding standard tooling (lint/format)
 
