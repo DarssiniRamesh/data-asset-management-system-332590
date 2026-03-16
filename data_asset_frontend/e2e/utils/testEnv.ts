@@ -74,6 +74,46 @@ function buildApiFailureMessage(opts: {
   return parts.join("\n");
 }
 
+/**
+ * API helpers
+ *
+ * Contract:
+ * - Input: relative path under backend base URL (e.g. "/api/assets")
+ * - Output: APIResponse when status is OK (or within okStatuses where specified)
+ * - Errors: throws with rich context (method/url/status/body) on failure
+ */
+
+// PUBLIC_INTERFACE
+export async function apiGet(
+  request: APIRequestContext,
+  path: string,
+  opts: { token?: string; okStatuses?: number[] } = {},
+): Promise<APIResponse> {
+  /** GET helper that logs useful details on failure. */
+  const { backendBaseUrl } = getTestEnv();
+  const url = `${backendBaseUrl}${path.startsWith("/") ? "" : "/"}${path}`;
+
+  const res = await request.get(url, {
+    headers: opts.token ? { Authorization: `Bearer ${opts.token}` } : undefined,
+  });
+
+  const okStatuses = opts.okStatuses ?? [200];
+  if (!okStatuses.includes(res.status())) {
+    const responseBody = await safeReadBody(res);
+    throw new Error(
+      buildApiFailureMessage({
+        method: "GET",
+        url,
+        status: res.status(),
+        statusText: res.statusText(),
+        responseBody,
+      }),
+    );
+  }
+
+  return res;
+}
+
 // PUBLIC_INTERFACE
 export async function apiPost(
   request: APIRequestContext,
