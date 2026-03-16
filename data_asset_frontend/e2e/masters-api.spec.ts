@@ -237,8 +237,16 @@ test.describe("Masters API - CRUD (POST/GET/PUT) via Playwright request context"
 
     const equationKey = uniqueKey("PW-EQ");
     const versionLabel = "v1";
-    const effectiveFrom = new Date().toISOString();
-    const effectiveTo = new Date(Date.now() + 1000 * 60 * 60 * 24 * 365).toISOString(); // +1y
+
+    // Backend contract (CreateEquationMasterRequest / UpdateEquationMasterRequest) expects:
+    // effectiveFrom/effectiveTo: string with format "date" (YYYY-MM-DD), not date-time.
+    const today = new Date();
+    const toIsoDate = (d: Date): string => d.toISOString().slice(0, 10);
+    const effectiveFrom = toIsoDate(today);
+
+    const oneYearFromNow = new Date(today);
+    oneYearFromNow.setFullYear(oneYearFromNow.getFullYear() + 1);
+    const effectiveTo = toIsoDate(oneYearFromNow);
 
     const createRes = await apiPost(request, "/api/masters/equations", {
       token,
