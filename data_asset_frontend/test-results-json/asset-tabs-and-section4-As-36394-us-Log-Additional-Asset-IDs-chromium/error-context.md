@@ -1,0 +1,117 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e4]:
+  - complementary "Sidebar navigation" [ref=e5]:
+    - generic [ref=e6]:
+      - generic [ref=e11]:
+        - generic [ref=e12]: Dashboard
+        - generic [ref=e13]: Navigation
+      - generic [ref=e14]: Menu
+    - navigation [ref=e15]:
+      - link "Overview" [ref=e16] [cursor=pointer]:
+        - /url: /app
+        - img [ref=e17]
+        - generic [ref=e19]: Overview
+      - link "Assets" [ref=e20] [cursor=pointer]:
+        - /url: /app/assets
+        - img [ref=e21]
+        - generic [ref=e23]: Assets
+      - link "Create" [ref=e24] [cursor=pointer]:
+        - /url: /app/assets/create
+        - img [ref=e25]
+        - generic [ref=e27]: Create
+      - link "Site Profile" [ref=e28] [cursor=pointer]:
+        - /url: /app/section4/site-profile
+        - img [ref=e29]
+        - generic [ref=e31]: Site Profile
+      - link "Chemicals (Raw)" [ref=e32] [cursor=pointer]:
+        - /url: /app/section4/chemical-raw-materials
+        - img [ref=e33]
+        - generic [ref=e35]: Chemicals (Raw)
+      - link "Chemical SDS" [ref=e36] [cursor=pointer]:
+        - /url: /app/section4/chemical-sds
+        - img [ref=e37]
+        - generic [ref=e39]: Chemical SDS
+      - link "Lab Data" [ref=e40] [cursor=pointer]:
+        - /url: /app/section4/lab-data
+        - img [ref=e41]
+        - generic [ref=e43]: Lab Data
+      - link "WWTS Streams" [ref=e44] [cursor=pointer]:
+        - /url: /app/section4/wwts-process-streams
+        - img [ref=e45]
+        - generic [ref=e47]: WWTS Streams
+      - link "Water Process" [ref=e48] [cursor=pointer]:
+        - /url: /app/section4/water-process
+        - img [ref=e49]
+        - generic [ref=e51]: Water Process
+      - link "Landing" [ref=e52] [cursor=pointer]:
+        - /url: /
+        - img [ref=e53]
+        - generic [ref=e55]: Landing
+  - generic [ref=e56]:
+    - generic [ref=e57]:
+      - generic [ref=e58]:
+        - generic [ref=e59]: Asset Configuration Dashboard
+        - generic [ref=e60]: Manage assets, mappings, and throughput setups
+      - generic [ref=e61]:
+        - button "Notifications" [ref=e62] [cursor=pointer]:
+          - img [ref=e63]
+        - button "Toggle theme" [ref=e65] [cursor=pointer]:
+          - img [ref=e66]
+        - generic [ref=e68]:
+          - generic [ref=e70]:
+            - generic [ref=e71]: demo
+            - generic [ref=e72]: Editor
+          - button "Logout" [ref=e73] [cursor=pointer]
+    - generic [ref=e77]:
+      - generic [ref=e78]:
+        - generic [ref=e79]:
+          - link "Dashboard" [ref=e80] [cursor=pointer]:
+            - /url: /app
+          - generic [ref=e81]: /
+        - generic [ref=e82]:
+          - link "Assets" [ref=e83] [cursor=pointer]:
+            - /url: /app/assets
+          - generic [ref=e84]: /
+        - generic [ref=e86]: PW-TABS-1773657744167
+      - generic [ref=e87]:
+        - generic [ref=e88]:
+          - heading "PW-TABS-1773657744167" [level=1] [ref=e89]
+          - paragraph [ref=e90]: SITE-001 • AG • PG
+        - link "Edit" [ref=e91] [cursor=pointer]:
+          - /url: /app/assets/127/edit
+          - img [ref=e92]
+          - text: Edit
+      - generic [ref=e94]:
+        - button "Asset Details" [ref=e95] [cursor=pointer]
+        - button "Asset Properties" [ref=e96] [cursor=pointer]
+        - button "Associated Control Devices" [ref=e97] [cursor=pointer]
+        - button "Associated Input Parameters" [ref=e98] [cursor=pointer]
+        - button "EF Source Mapping" [ref=e99] [cursor=pointer]
+        - button "Throughput Setup" [ref=e100] [cursor=pointer]
+        - button "Data Input" [ref=e101] [cursor=pointer]
+        - button "Parent Input Parameter Mapping" [ref=e102] [cursor=pointer]
+        - button "Reporting Attributes Mapping" [ref=e103] [cursor=pointer]
+        - button "Status Log" [ref=e104] [cursor=pointer]
+        - button "Additional Asset IDs" [ref=e105] [cursor=pointer]
+      - generic [ref=e106]:
+        - generic [ref=e107]:
+          - generic [ref=e108]: Configuration
+          - generic [ref=e109]:
+            - generic [ref=e110]:
+              - generic [ref=e111]: Asset ID
+              - generic [ref=e112]: "127"
+            - generic [ref=e113]:
+              - generic [ref=e114]: Global Unique Asset ID
+              - generic [ref=e115]: PW-GUA-1773657744167
+            - generic [ref=e116]:
+              - generic [ref=e117]: Permit EU ID
+              - generic [ref=e118]: PW-PERMIT-1773657744167
+            - generic [ref=e119]:
+              - generic [ref=e120]: Site
+              - generic [ref=e121]: SITE-001
+        - generic [ref=e122]:
+          - generic [ref=e123]: Modules
+          - generic [ref=e124]: Use the tabs to view and manage BRD-required linked setup modules (RBAC-aware).
+```

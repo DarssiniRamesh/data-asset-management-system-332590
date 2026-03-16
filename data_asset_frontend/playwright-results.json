@@ -1,0 +1,1273 @@
+{
+  "config": {
+    "configFile": "/home/kavia/workspace/code-generation/data-asset-management-system-332590/data_asset_frontend/playwright.config.ts",
+    "rootDir": "/home/kavia/workspace/code-generation/data-asset-management-system-332590/data_asset_frontend/e2e",
+    "forbidOnly": false,
+    "fullyParallel": true,
+    "globalSetup": null,
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 2
+    },
+    "preserveOutput": "always",
+    "projects": [
+      {
+        "outputDir": "/home/kavia/workspace/code-generation/data-asset-management-system-332590/data_asset_frontend/test-results-json",
+        "repeatEach": 1,
+        "retries": 2,
+        "metadata": {
+          "actualWorkers": 2
+        },
+        "id": "chromium",
+        "name": "chromium",
+        "testDir": "/home/kavia/workspace/code-generation/data-asset-management-system-332590/data_asset_frontend/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 60000
+      }
+    ],
+    "quiet": false,
+    "reporter": [
+      [
+        "json"
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "runAgents": "none",
+    "shard": null,
+    "tags": [],
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.58.2",
+    "workers": 2,
+    "webServer": null
+  },
+  "suites": [
+    {
+      "title": "asset-tabs-and-section4.spec.ts",
+      "file": "asset-tabs-and-section4.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "Asset Details: listed tabs/sections render + key API endpoints respond",
+          "file": "asset-tabs-and-section4.spec.ts",
+          "line": 31,
+          "column": 6,
+          "specs": [
+            {
+              "title": "Asset Details tabs/sections: Asset Details, Properties, Control Devices, Input Parameters, EF Source Mapping, Throughput Setup, Data Input, Parent Input Parameter Mapping, Reporting Attributes Mapping, Status Log, Additional Asset IDs",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "timedOut",
+                      "duration": 63694,
+                      "error": {
+                        "message": "\u001b[31mTest timeout of 60000ms exceeded.\u001b[39m",
+                        "stack": "\u001b[31mTest timeout of 60000ms exceeded.\u001b[39m"
+                      },
+                      "errors": [
+                        {
+                          "message": "\u001b[31mTest timeout of 60000ms exceeded.\u001b[39m"
+                        },
+                        {
+                          "location": {
+                            "file": "/home/kavia/workspace/code-generation/data-asset-management-system-332590/data_asset_frontend/e2e/asset-tabs-and-section4.spec.ts",
+                            "column": 54,
+                            "line": 48
+                          },
+                          "message": "Error: locator.click: Test timeout of 60000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('tab', { name: /asset details/i })\u001b[22m\n\n\n  46 |     // so it remains stable across minor UI copy changes.\n  47 |     const openTabAndAssert = async (tabName: RegExp, assertFn: () => Promise<void>) => {\n> 48 |       await page.getByRole(\"tab\", { name: tabName }).click();\n     |                                                      ^\n  49 |       // Ensure tab is selected (stable accessibility signal)\n  50 |       await expect(page.getByRole(\"tab\", { name: tabName })).toHaveAttribute(\"aria-selected\", \"true\");\n  51 |       await assertFn();\n    at openTabAndAssert (/home/kavia/workspace/code-generation/data-asset-management-system-332590/data_asset_frontend/e2e/asset-tabs-and-section4.spec.ts:48:54)\n    at /home/kavia/workspace/code-generation/data-asset-management-system-332590/data_asset_frontend/e2e/asset-tabs-and-section4.spec.ts:55:11"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-03-16T10:42:23.944Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "/home/kavia/workspace/code-generation/data-asset-management-system-332590/data_asset_frontend/test-results-json/asset-tabs-and-section4-As-36394-us-Log-Additional-Asset-IDs-chromium/test-failed-1.png"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "/home/kavia/workspace/code-generation/data-asset-management-system-332590/data_asset_frontend/test-results-json/asset-tabs-and-section4-As-36394-us-Log-Additional-Asset-IDs-chromium/video.webm"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "/home/kavia/workspace/code-generation/data-asset-management-system-332590/data_asset_frontend/test-results-json/asset-tabs-and-section4-As-36394-us-Log-Additional-Asset-IDs-chromium/error-context.md"
+                        }
+                      ]
+                    },
+                    {
+                      "workerIndex": 5,
+                      "parallelIndex": 0,
+                      "status": "timedOut",
+                      "duration": 63528,
+                      "error": {
+                        "message": "\u001b[31mTest timeout of 60000ms exceeded.\u001b[39m",
+                        "stack": "\u001b[31mTest timeout of 60000ms exceeded.\u001b[39m"
+                      },
+                      "errors": [
+                        {
+                          "message": "\u001b[31mTest timeout of 60000ms exceeded.\u001b[39m"
+                        },
+                        {
+                          "location": {
+                            "file": "/home/kavia/workspace/code-generation/data-asset-management-system-332590/data_asset_frontend/e2e/asset-tabs-and-section4.spec.ts",
+                            "column": 54,
+                            "line": 48
+                          },
+                          "message": "Error: locator.click: Test timeout of 60000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('tab', { name: /asset details/i })\u001b[22m\n\n\n  46 |     // so it remains stable across minor UI copy changes.\n  47 |     const openTabAndAssert = async (tabName: RegExp, assertFn: () => Promise<void>) => {\n> 48 |       await page.getByRole(\"tab\", { name: tabName }).click();\n     |                                                      ^\n  49 |       // Ensure tab is selected (stable accessibility signal)\n  50 |       await expect(page.getByRole(\"tab\", { name: tabName })).toHaveAttribute(\"aria-selected\", \"true\");\n  51 |       await assertFn();\n    at openTabAndAssert (/home/kavia/workspace/code-generation/data-asset-management-system-332590/data_asset_frontend/e2e/asset-tabs-and-section4.spec.ts:48:54)\n    at /home/kavia/workspace/code-generation/data-asset-management-system-332590/data_asset_frontend/e2e/asset-tabs-and-section4.spec.ts:55:11"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 1,
+                      "startTime": "2026-03-16T10:43:29.093Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "/home/kavia/workspace/code-generation/data-asset-management-system-332590/data_asset_frontend/test-results-json/asset-tabs-and-section4-As-36394-us-Log-Additional-Asset-IDs-chromium-retry1/test-failed-1.png"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "/home/kavia/workspace/code-generation/data-asset-management-system-332590/data_asset_frontend/test-results-json/asset-tabs-and-section4-As-36394-us-Log-Additional-Asset-IDs-chromium-retry1/video.webm"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "/home/kavia/workspace/code-generation/data-asset-management-system-332590/data_asset_frontend/test-results-json/asset-tabs-and-section4-As-36394-us-Log-Additional-Asset-IDs-chromium-retry1/error-context.md"
+                        },
+                        {
+                          "name": "trace",
+                          "contentType": "application/zip",
+                          "path": "/home/kavia/workspace/code-generation/data-asset-management-system-332590/data_asset_frontend/test-results-json/asset-tabs-and-section4-As-36394-us-Log-Additional-Asset-IDs-chromium-retry1/trace.zip"
+                        }
+                      ]
+                    },
+                    {
+                      "workerIndex": 6,
+                      "parallelIndex": 0,
+                      "status": "timedOut",
+                      "duration": 63720,
+                      "error": {
+                        "message": "\u001b[31mTest timeout of 60000ms exceeded.\u001b[39m",
+                        "stack": "\u001b[31mTest timeout of 60000ms exceeded.\u001b[39m"
+                      },
+                      "errors": [
+                        {
+                          "message": "\u001b[31mTest timeout of 60000ms exceeded.\u001b[39m"
+                        },
+                        {
+                          "location": {
+                            "file": "/home/kavia/workspace/code-generation/data-asset-management-system-332590/data_asset_frontend/e2e/asset-tabs-and-section4.spec.ts",
+                            "column": 54,
+                            "line": 48
+                          },
+                          "message": "Error: locator.click: Test timeout of 60000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('tab', { name: /asset details/i })\u001b[22m\n\n\n  46 |     // so it remains stable across minor UI copy changes.\n  47 |     const openTabAndAssert = async (tabName: RegExp, assertFn: () => Promise<void>) => {\n> 48 |       await page.getByRole(\"tab\", { name: tabName }).click();\n     |                                                      ^\n  49 |       // Ensure tab is selected (stable accessibility signal)\n  50 |       await expect(page.getByRole(\"tab\", { name: tabName })).toHaveAttribute(\"aria-selected\", \"true\");\n  51 |       await assertFn();\n    at openTabAndAssert (/home/kavia/workspace/code-generation/data-asset-management-system-332590/data_asset_frontend/e2e/asset-tabs-and-section4.spec.ts:48:54)\n    at /home/kavia/workspace/code-generation/data-asset-management-system-332590/data_asset_frontend/e2e/asset-tabs-and-section4.spec.ts:55:11"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 2,
+                      "startTime": "2026-03-16T10:44:34.316Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "/home/kavia/workspace/code-generation/data-asset-management-system-332590/data_asset_frontend/test-results-json/asset-tabs-and-section4-As-36394-us-Log-Additional-Asset-IDs-chromium-retry2/test-failed-1.png"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "/home/kavia/workspace/code-generation/data-asset-management-system-332590/data_asset_frontend/test-results-json/asset-tabs-and-section4-As-36394-us-Log-Additional-Asset-IDs-chromium-retry2/video.webm"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "/home/kavia/workspace/code-generation/data-asset-management-system-332590/data_asset_frontend/test-results-json/asset-tabs-and-section4-As-36394-us-Log-Additional-Asset-IDs-chromium-retry2/error-context.md"
+                        }
+                      ]
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "e0d0dc007892ee6e4286-f6bdd75ff5f86b53d078",
+              "file": "asset-tabs-and-section4.spec.ts",
+              "line": 32,
+              "column": 7
+            },
+            {
+              "title": "Section4 endpoints (user_input_ref): CRUD endpoints respond with auth token (deterministic API checks)",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 589,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-03-16T10:42:23.932Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "e0d0dc007892ee6e4286-64e55f9ec6d4bb1b9f56",
+              "file": "asset-tabs-and-section4.spec.ts",
+              "line": 146,
+              "column": 7
+            },
+            {
+              "title": "LegacyCompatibility endpoints (user_input_ref): endpoints respond with auth token (deterministic API checks)",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
+                      "status": "failed",
+                      "duration": 46,
+                      "error": {
+                        "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoContain\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // indexOf\u001b[22m\n\nExpected value: \u001b[32m403\u001b[39m\nReceived array: \u001b[31m[200, 201, 400]\u001b[39m",
+                        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoContain\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // indexOf\u001b[22m\n\nExpected value: \u001b[32m403\u001b[39m\nReceived array: \u001b[31m[200, 201, 400]\u001b[39m\n    at /home/kavia/workspace/code-generation/data-asset-management-system-332590/data_asset_frontend/e2e/asset-tabs-and-section4.spec.ts:218:31",
+                        "location": {
+                          "file": "/home/kavia/workspace/code-generation/data-asset-management-system-332590/data_asset_frontend/e2e/asset-tabs-and-section4.spec.ts",
+                          "column": 31,
+                          "line": 218
+                        },
+                        "snippet": "\u001b[0m \u001b[90m 216 |\u001b[39m         data\u001b[33m:\u001b[39m { correlationId\u001b[33m:\u001b[39m \u001b[32m`pw-legacy-${Date.now()}`\u001b[39m }\u001b[33m,\u001b[39m\n \u001b[90m 217 |\u001b[39m       })\u001b[33m;\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 218 |\u001b[39m       expect([\u001b[35m200\u001b[39m\u001b[33m,\u001b[39m \u001b[35m201\u001b[39m\u001b[33m,\u001b[39m \u001b[35m400\u001b[39m])\u001b[33m.\u001b[39mtoContain(res\u001b[33m.\u001b[39mstatus())\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m                               \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 219 |\u001b[39m     }\n \u001b[90m 220 |\u001b[39m\n \u001b[90m 221 |\u001b[39m     \u001b[90m// Legacy EF source mapping (path params) and throughput generator.\u001b[39m\u001b[0m"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "/home/kavia/workspace/code-generation/data-asset-management-system-332590/data_asset_frontend/e2e/asset-tabs-and-section4.spec.ts",
+                            "column": 31,
+                            "line": 218
+                          },
+                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoContain\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // indexOf\u001b[22m\n\nExpected value: \u001b[32m403\u001b[39m\nReceived array: \u001b[31m[200, 201, 400]\u001b[39m\n\n  216 |         data: { correlationId: `pw-legacy-${Date.now()}` },\n  217 |       });\n> 218 |       expect([200, 201, 400]).toContain(res.status());\n      |                               ^\n  219 |     }\n  220 |\n  221 |     // Legacy EF source mapping (path params) and throughput generator.\n    at /home/kavia/workspace/code-generation/data-asset-management-system-332590/data_asset_frontend/e2e/asset-tabs-and-section4.spec.ts:218:31"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-03-16T10:42:24.549Z",
+                      "annotations": [],
+                      "attachments": [],
+                      "errorLocation": {
+                        "file": "/home/kavia/workspace/code-generation/data-asset-management-system-332590/data_asset_frontend/e2e/asset-tabs-and-section4.spec.ts",
+                        "column": 31,
+                        "line": 218
+                      }
+                    },
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 1,
+                      "status": "failed",
+                      "duration": 198,
+                      "error": {
+                        "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoContain\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // indexOf\u001b[22m\n\nExpected value: \u001b[32m403\u001b[39m\nReceived array: \u001b[31m[200, 201, 400]\u001b[39m",
+                        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoContain\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // indexOf\u001b[22m\n\nExpected value: \u001b[32m403\u001b[39m\nReceived array: \u001b[31m[200, 201, 400]\u001b[39m\n    at /home/kavia/workspace/code-generation/data-asset-management-system-332590/data_asset_frontend/e2e/asset-tabs-and-section4.spec.ts:218:31",
+                        "location": {
+                          "file": "/home/kavia/workspace/code-generation/data-asset-management-system-332590/data_asset_frontend/e2e/asset-tabs-and-section4.spec.ts",
+                          "column": 31,
+                          "line": 218
+                        },
+                        "snippet": "\u001b[0m \u001b[90m 216 |\u001b[39m         data\u001b[33m:\u001b[39m { correlationId\u001b[33m:\u001b[39m \u001b[32m`pw-legacy-${Date.now()}`\u001b[39m }\u001b[33m,\u001b[39m\n \u001b[90m 217 |\u001b[39m       })\u001b[33m;\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 218 |\u001b[39m       expect([\u001b[35m200\u001b[39m\u001b[33m,\u001b[39m \u001b[35m201\u001b[39m\u001b[33m,\u001b[39m \u001b[35m400\u001b[39m])\u001b[33m.\u001b[39mtoContain(res\u001b[33m.\u001b[39mstatus())\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m                               \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 219 |\u001b[39m     }\n \u001b[90m 220 |\u001b[39m\n \u001b[90m 221 |\u001b[39m     \u001b[90m// Legacy EF source mapping (path params) and throughput generator.\u001b[39m\u001b[0m"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "/home/kavia/workspace/code-generation/data-asset-management-system-332590/data_asset_frontend/e2e/asset-tabs-and-section4.spec.ts",
+                            "column": 31,
+                            "line": 218
+                          },
+                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoContain\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // indexOf\u001b[22m\n\nExpected value: \u001b[32m403\u001b[39m\nReceived array: \u001b[31m[200, 201, 400]\u001b[39m\n\n  216 |         data: { correlationId: `pw-legacy-${Date.now()}` },\n  217 |       });\n> 218 |       expect([200, 201, 400]).toContain(res.status());\n      |                               ^\n  219 |     }\n  220 |\n  221 |     // Legacy EF source mapping (path params) and throughput generator.\n    at /home/kavia/workspace/code-generation/data-asset-management-system-332590/data_asset_frontend/e2e/asset-tabs-and-section4.spec.ts:218:31"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 1,
+                      "startTime": "2026-03-16T10:42:25.974Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "trace",
+                          "contentType": "application/zip",
+                          "path": "/home/kavia/workspace/code-generation/data-asset-management-system-332590/data_asset_frontend/test-results-json/asset-tabs-and-section4-As-65415-n-deterministic-API-checks--chromium-retry1/trace.zip"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "/home/kavia/workspace/code-generation/data-asset-management-system-332590/data_asset_frontend/e2e/asset-tabs-and-section4.spec.ts",
+                        "column": 31,
+                        "line": 218
+                      }
+                    },
+                    {
+                      "workerIndex": 3,
+                      "parallelIndex": 1,
+                      "status": "failed",
+                      "duration": 135,
+                      "error": {
+                        "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoContain\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // indexOf\u001b[22m\n\nExpected value: \u001b[32m403\u001b[39m\nReceived array: \u001b[31m[200, 201, 400]\u001b[39m",
+                        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoContain\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // indexOf\u001b[22m\n\nExpected value: \u001b[32m403\u001b[39m\nReceived array: \u001b[31m[200, 201, 400]\u001b[39m\n    at /home/kavia/workspace/code-generation/data-asset-management-system-332590/data_asset_frontend/e2e/asset-tabs-and-section4.spec.ts:218:31",
+                        "location": {
+                          "file": "/home/kavia/workspace/code-generation/data-asset-management-system-332590/data_asset_frontend/e2e/asset-tabs-and-section4.spec.ts",
+                          "column": 31,
+                          "line": 218
+                        },
+                        "snippet": "\u001b[0m \u001b[90m 216 |\u001b[39m         data\u001b[33m:\u001b[39m { correlationId\u001b[33m:\u001b[39m \u001b[32m`pw-legacy-${Date.now()}`\u001b[39m }\u001b[33m,\u001b[39m\n \u001b[90m 217 |\u001b[39m       })\u001b[33m;\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 218 |\u001b[39m       expect([\u001b[35m200\u001b[39m\u001b[33m,\u001b[39m \u001b[35m201\u001b[39m\u001b[33m,\u001b[39m \u001b[35m400\u001b[39m])\u001b[33m.\u001b[39mtoContain(res\u001b[33m.\u001b[39mstatus())\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m                               \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 219 |\u001b[39m     }\n \u001b[90m 220 |\u001b[39m\n \u001b[90m 221 |\u001b[39m     \u001b[90m// Legacy EF source mapping (path params) and throughput generator.\u001b[39m\u001b[0m"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "/home/kavia/workspace/code-generation/data-asset-management-system-332590/data_asset_frontend/e2e/asset-tabs-and-section4.spec.ts",
+                            "column": 31,
+                            "line": 218
+                          },
+                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoContain\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // indexOf\u001b[22m\n\nExpected value: \u001b[32m403\u001b[39m\nReceived array: \u001b[31m[200, 201, 400]\u001b[39m\n\n  216 |         data: { correlationId: `pw-legacy-${Date.now()}` },\n  217 |       });\n> 218 |       expect([200, 201, 400]).toContain(res.status());\n      |                               ^\n  219 |     }\n  220 |\n  221 |     // Legacy EF source mapping (path params) and throughput generator.\n    at /home/kavia/workspace/code-generation/data-asset-management-system-332590/data_asset_frontend/e2e/asset-tabs-and-section4.spec.ts:218:31"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 2,
+                      "startTime": "2026-03-16T10:42:27.632Z",
+                      "annotations": [],
+                      "attachments": [],
+                      "errorLocation": {
+                        "file": "/home/kavia/workspace/code-generation/data-asset-management-system-332590/data_asset_frontend/e2e/asset-tabs-and-section4.spec.ts",
+                        "column": 31,
+                        "line": 218
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "e0d0dc007892ee6e4286-6a87992d2720862e9ba8",
+              "file": "asset-tabs-and-section4.spec.ts",
+              "line": 204,
+              "column": 7
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "brd-asset-configuration.spec.ts",
+      "file": "brd-asset-configuration.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "BRD Asset Configuration - backend relevant E2E/API checks",
+          "file": "brd-asset-configuration.spec.ts",
+          "line": 13,
+          "column": 6,
+          "specs": [
+            {
+              "title": "FR-01 Add Asset: API create succeeds with required fields; created asset appears in UI list",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 4,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 2530,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-03-16T10:42:29.080Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "2ccbe5d46a0d08802157-a63585eed20c8b7e1e99",
+              "file": "brd-asset-configuration.spec.ts",
+              "line": 14,
+              "column": 7
+            },
+            {
+              "title": "FR-02 Edit Asset: API update changes name; UI reflects update",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 4,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 2545,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-03-16T10:42:31.724Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "2ccbe5d46a0d08802157-a8cfe1867a00b5b1467f",
+              "file": "brd-asset-configuration.spec.ts",
+              "line": 35,
+              "column": 7
+            },
+            {
+              "title": "FR-04 Delete Asset: RBAC enforced (Editor forbidden), Admin can delete",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 4,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 978,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-03-16T10:42:34.285Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "2ccbe5d46a0d08802157-957a295d19e6cfd8f90c",
+              "file": "brd-asset-configuration.spec.ts",
+              "line": 67,
+              "column": 7
+            },
+            {
+              "title": "FR-03 Copy Asset: UI shows Confirmation! modal and lineage endpoint returns record",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 4,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 3145,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-03-16T10:42:35.277Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "2ccbe5d46a0d08802157-e77b486d815c147e8987",
+              "file": "brd-asset-configuration.spec.ts",
+              "line": 92,
+              "column": 7
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "brd-correlation-id.spec.ts",
+      "file": "brd-correlation-id.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "BRD Observability - correlation-id propagation (hybrid UI + API)",
+          "file": "brd-correlation-id.spec.ts",
+          "line": 17,
+          "column": 6,
+          "specs": [
+            {
+              "title": "Correlation ID is echoed back when provided and valid (API)",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 4,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 80,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-03-16T10:42:38.440Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "8bf55a5eb37b71f2e403-174c41ef6ecb99cb4991",
+              "file": "brd-correlation-id.spec.ts",
+              "line": 18,
+              "column": 7
+            },
+            {
+              "title": "Correlation ID is replaced when header is missing or invalid (API)",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 4,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 151,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-03-16T10:42:38.537Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "8bf55a5eb37b71f2e403-f85e31fbdf55a1954b4d",
+              "file": "brd-correlation-id.spec.ts",
+              "line": 41,
+              "column": 7
+            },
+            {
+              "title": "UI-driven authenticated flow produces correlated API calls (UI triggers API; verify response headers)",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 4,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 2169,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-03-16T10:42:38.704Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "8bf55a5eb37b71f2e403-efa05f7b0c453bd492ed",
+              "file": "brd-correlation-id.spec.ts",
+              "line": 72,
+              "column": 7
+            },
+            {
+              "title": "API pre-seeds correlation-id, UI action still gets a correlation-id response header (sanity observability check)",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 4,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 2996,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-03-16T10:42:40.889Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "8bf55a5eb37b71f2e403-9b7bb487e9b6530845b6",
+              "file": "brd-correlation-id.spec.ts",
+              "line": 105,
+              "column": 7
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "masters-api.spec.ts",
+      "file": "masters-api.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "Masters API - CRUD (POST/GET/PUT) via Playwright request context",
+          "file": "masters-api.spec.ts",
+          "line": 39,
+          "column": 6,
+          "specs": [
+            {
+              "title": "UOM masters: create, list, update",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 4,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 279,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-03-16T10:42:43.909Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "74ed429d066a5cec73f2-f74246455e8e7c828c2b",
+              "file": "masters-api.spec.ts",
+              "line": 40,
+              "column": 7
+            },
+            {
+              "title": "Reporting program masters: create, list, update",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 4,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 220,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-03-16T10:42:44.204Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "74ed429d066a5cec73f2-1da548819f09b6522fee",
+              "file": "masters-api.spec.ts",
+              "line": 93,
+              "column": 7
+            },
+            {
+              "title": "Control device masters: create, list, update",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 4,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 217,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-03-16T10:42:44.438Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "74ed429d066a5cec73f2-6e2b7b17377885d9a198",
+              "file": "masters-api.spec.ts",
+              "line": 158,
+              "column": 7
+            },
+            {
+              "title": "Equation masters: create, list, update",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 4,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 218,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-03-16T10:42:44.666Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "74ed429d066a5cec73f2-caaa0c21be726d1db31c",
+              "file": "masters-api.spec.ts",
+              "line": 235,
+              "column": 7
+            },
+            {
+              "title": "Status code masters: create, list, update",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 4,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 224,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-03-16T10:42:44.896Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "74ed429d066a5cec73f2-6f8460075e03ff3775dc",
+              "file": "masters-api.spec.ts",
+              "line": 305,
+              "column": 7
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "section4-and-legacy-api.spec.ts",
+      "file": "section4-and-legacy-api.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "Section4 API - CRUD (GET/POST/PUT/DELETE) via Playwright request context",
+          "file": "section4-and-legacy-api.spec.ts",
+          "line": 86,
+          "column": 6,
+          "specs": [
+            {
+              "title": "site-profiles: list + create-update-delete",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 4,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 285,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-03-16T10:42:45.147Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "311de25b06c9e994da84-2a49b281ec8d20f35e70",
+              "file": "section4-and-legacy-api.spec.ts",
+              "line": 218,
+              "column": 9
+            },
+            {
+              "title": "chemical-raw-materials: list + create-update-delete",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 4,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 285,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-03-16T10:42:45.452Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "311de25b06c9e994da84-7e2b77094ea35feef07d",
+              "file": "section4-and-legacy-api.spec.ts",
+              "line": 218,
+              "column": 9
+            },
+            {
+              "title": "chemical-sds: list + create-update-delete",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 4,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 301,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-03-16T10:42:45.763Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "311de25b06c9e994da84-26d28da079fc7a3c56bd",
+              "file": "section4-and-legacy-api.spec.ts",
+              "line": 218,
+              "column": 9
+            },
+            {
+              "title": "wwts-process-streams: list + create-update-delete",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 4,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 291,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-03-16T10:42:46.083Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "311de25b06c9e994da84-396ab5291369e6fb5cbb",
+              "file": "section4-and-legacy-api.spec.ts",
+              "line": 218,
+              "column": 9
+            },
+            {
+              "title": "lab-data-configurations: list + create-update-delete",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 4,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 286,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-03-16T10:42:46.397Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "311de25b06c9e994da84-e88169abd69929d17233",
+              "file": "section4-and-legacy-api.spec.ts",
+              "line": 218,
+              "column": 9
+            },
+            {
+              "title": "water-process-configurations: list + create-update-delete",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 4,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 284,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-03-16T10:42:46.702Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "311de25b06c9e994da84-5632b7e5049494cacbe0",
+              "file": "section4-and-legacy-api.spec.ts",
+              "line": 218,
+              "column": 9
+            }
+          ]
+        },
+        {
+          "title": "LegacyCompatibility API endpoints via Playwright request context",
+          "file": "section4-and-legacy-api.spec.ts",
+          "line": 312,
+          "column": 6,
+          "specs": [
+            {
+              "title": "POST /api/siteassets/managesiteassets (create mode)",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 4,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 137,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-03-16T10:42:47.002Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "311de25b06c9e994da84-a8725b849022ec1ae701",
+              "file": "section4-and-legacy-api.spec.ts",
+              "line": 313,
+              "column": 7
+            },
+            {
+              "title": "POST /api/siteassets/removesiteasset (requires assetId)",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 4,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 1040,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-03-16T10:42:47.153Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "311de25b06c9e994da84-52da99593e7179fd9182",
+              "file": "section4-and-legacy-api.spec.ts",
+              "line": 342,
+              "column": 7
+            },
+            {
+              "title": "Legacy input EF source mapping: POST/GET/PUT works (with seeded asset + input parameter)",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 4,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 1830,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-03-16T10:42:48.211Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "311de25b06c9e994da84-231ec3e1aae0b045f1b7",
+              "file": "section4-and-legacy-api.spec.ts",
+              "line": 364,
+              "column": 7
+            },
+            {
+              "title": "POST /api/calculatedthroughputequationsetup/{assetId}/{inputParameterId}/generatethroughputforinputparameter (with seeded input parameter)",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 4,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 1427,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-03-16T10:42:50.057Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "311de25b06c9e994da84-34751bc84ed1d7fe81aa",
+              "file": "section4-and-legacy-api.spec.ts",
+              "line": 417,
+              "column": 7
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2026-03-16T10:42:22.478Z",
+    "duration": 195727.666,
+    "expected": 24,
+    "skipped": 0,
+    "unexpected": 2,
+    "flaky": 0
+  }
+}
