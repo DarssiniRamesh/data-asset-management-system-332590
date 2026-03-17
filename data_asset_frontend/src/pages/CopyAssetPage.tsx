@@ -30,9 +30,17 @@ function tryExtractCopyMetadata(resp: unknown): {
     (typeof r["copyOperationId"] === "string" ? (r["copyOperationId"] as string) : undefined) ??
     (typeof r["CopyOperationId"] === "string" ? (r["CopyOperationId"] as string) : undefined);
 
+  // Backend OpenAPI defines TargetAssetId as int64, so in JS it typically arrives as a number.
+  // Accept both string and number, and a few common variants to be resilient across serializers.
   const targetAssetId =
     (typeof r["targetAssetId"] === "string" ? (r["targetAssetId"] as string) : undefined) ??
+    (typeof r["targetAssetId"] === "number" ? String(r["targetAssetId"]) : undefined) ??
     (typeof r["TargetAssetId"] === "string" ? (r["TargetAssetId"] as string) : undefined) ??
+    (typeof r["TargetAssetId"] === "number" ? String(r["TargetAssetId"]) : undefined) ??
+    (typeof r["assetId"] === "string" ? (r["assetId"] as string) : undefined) ??
+    (typeof r["assetId"] === "number" ? String(r["assetId"]) : undefined) ??
+    (typeof r["AssetId"] === "string" ? (r["AssetId"] as string) : undefined) ??
+    (typeof r["AssetId"] === "number" ? String(r["AssetId"]) : undefined) ??
     (typeof r["newAssetId"] === "number" ? String(r["newAssetId"]) : undefined) ??
     (typeof r["NewAssetId"] === "number" ? String(r["NewAssetId"]) : undefined);
 
@@ -383,7 +391,10 @@ export function CopyAssetPage() {
               {targetAssetId ? (
                 <button
                   className="btn-ghost"
-                  onClick={() => nav(`/app/assets/${encodeURIComponent(targetAssetId)}`)}
+                  onClick={() => {
+                    if (!targetAssetId) return;
+                    nav(`/app/assets/${encodeURIComponent(targetAssetId)}`);
+                  }}
                 >
                   View Target Asset
                 </button>
