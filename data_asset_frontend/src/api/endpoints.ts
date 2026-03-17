@@ -255,13 +255,35 @@ export async function deleteAsset(
 export async function copyAsset(
   assetId: string,
   req: CopyAssetRequest,
-): Promise<unknown> {
-  /** Contract: backend copies asset modules and returns a copy response. */
-  return apiRequest<unknown>({
+): Promise<AssetDto> {
+  /** Contract:
+   * - POST /api/assets/{assetId}/copy
+   * - Backend returns CopyAssetResponse which contains the created target asset.
+   * - Some environments may serialize response fields in PascalCase; extract either.
+   *
+   * Returning AssetDto here ensures callers can immediately navigate/render using the correct
+   * canonical field names (e.g., assetName), preventing blank rows / “..” placeholders after copy.
+   */
+  const resp = await apiRequest<unknown>({
     method: "POST",
     path: `/api/assets/${encodeURIComponent(assetId)}/copy`,
     body: req,
   });
+
+  // CopyAssetResponse shape: { targetAsset: AssetDto } or { TargetAsset: AssetDto }
+  const obj = resp as Record<string, unknown> | null;
+
+  const target =
+    (obj && (obj["targetAsset"] as BackendAssetDto | undefined)) ??
+    (obj && (obj["TargetAsset"] as BackendAssetDto | undefined));
+
+  if (!target || typeof target !== "object") {
+    // Defensive fallback: if backend/proxy shape changes, at least don't return an empty assetName silently.
+    // This will surface quickly in UI error handling or tests.
+    throw new Error("Copy asset response missing targetAsset.");
+  }
+
+  return mapAssetFromBackend(target);
 }
 
 type BackendAssetCopyLineageDto = {
